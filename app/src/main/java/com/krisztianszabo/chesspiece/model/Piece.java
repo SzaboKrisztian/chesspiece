@@ -2,8 +2,7 @@ package com.krisztianszabo.chesspiece.model;
 
 import androidx.annotation.Nullable;
 
-import com.krisztianszabo.chesspiece.model.Coord;
-import com.krisztianszabo.chesspiece.model.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +18,7 @@ public class Piece {
         KING
     }
 
-    private static Map<Type, String> typeCodes = new HashMap<Type, String>() {{
+    private final static Map<Type, String> typeCodes = new HashMap<Type, String>() {{
         put(Type.PAWN, "PAWN");
         put(Type.BISHOP, "BISHOP");
         put(Type.KNIGHT, "KNIGHT");
@@ -29,45 +28,33 @@ public class Piece {
     }};
 
     private Type type;
-    private Player belongsTo;
-    private boolean moved = false;
-    private int x;
-    private int y;
+    private Player owner;
+    private int position;
 
-    public Piece(Type type, Player belongsToPlayer, int x, int y) {
+    public Piece(Type type, Player belongsToPlayer, int position) {
         this.type = type;
-        this.belongsTo = belongsToPlayer;
-        this.x = x;
-        this.y = y;
+        this.owner = belongsToPlayer;
+        this.position = position;
     }
 
-    public Player getBelongsTo() {
-        return belongsTo;
+    public Player getOwner() {
+        return owner;
     }
 
     public Type getType() {
         return type;
     }
 
-    public Coord getCoords() {
-        return new Coord(this.x, this.y);
+    public int getPosition() {
+        return position;
     }
 
-    public void setCoords(Coord coords) {
-        this.x = coords.getX();
-        this.y = coords.getY();
-    }
-
-    public boolean hasItMoved() {
-        return this.moved;
-    }
-
-    public void setMoved() {
-        this.moved = true;
+    public void setPosition(int position) {
+        this.position = position;
     }
 
     public String getCode() {
-        String prefix = belongsTo == Player.WHITE ? "WH_" : "BL_";
+        String prefix = owner == Player.WHITE ? "WH_" : "BL_";
         return prefix + typeCodes.get(type);
     }
 
@@ -79,5 +66,10 @@ public class Piece {
     @Override
     public int hashCode() {
         return super.hashCode();
+    }
+
+    @NotNull
+    public String toString() {
+        return getCode();
     }
 }

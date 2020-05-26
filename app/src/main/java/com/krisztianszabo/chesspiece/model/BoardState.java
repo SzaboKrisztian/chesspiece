@@ -6,79 +6,93 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class BoardState {
-    private Piece[][] board;
+    private Piece[] squares;
     private Player currentPlayer;
-    private Map<Piece, List<Coord>> legalMoves;
-    private Map<Player, List<Piece>> active;
-    private Map<Player, List<Piece>> captured;
+    private Map<Piece, List<Integer>> legalMoves;
+    private List<Piece> pieces;
+    private List<Piece> captured;
+    private boolean whiteCastleKingside;
+    private boolean whiteCastleQueenside;
+    private boolean blackCastleKingside;
+    private boolean blackCastleQueenside;
+    private Integer enPassant;
+
+    public static final int N = 16, NE = 17, E = 1, SE = -15, S = -16, SW = -17, W = -1, NW = 15;
+    public static final int[] bishopDirs = {NE, SE, SW, NW};
+    public static final int[] rookDirs = {N, E, S, W};
+    public static final int[] queenDirs = {N, NE, E, SE, S, SW, W, NW};
+    public static final int[] knightDirs = {33, 18, -14, -31, -33, -18, 14, 31}; // Weirdo
 
     public BoardState() {
         this.legalMoves = new HashMap<>();
-        active = new HashMap<>();
-        active.put(Player.WHITE, new ArrayList<Piece>());
-        active.put(Player.BLACK, new ArrayList<Piece>());
-        captured = new HashMap<>();
-        captured.put(Player.WHITE, new ArrayList<Piece>());
-        captured.put(Player.BLACK, new ArrayList<Piece>());
+        pieces = new ArrayList<>();
+        captured = new ArrayList<>();
     }
     
     public BoardState(BoardState other) {
         this();
         this.currentPlayer = other.currentPlayer;
-        this.board = new Piece[8][8];
-        for (int y = 0; y < 8; y++) {
-            for (int x = 0; x < 8; x++) {
-                this.board[x][y] = other.board[x][y];
-            }
-        }
-        this.active.get(Player.WHITE).addAll(other.active.get(Player.WHITE));
-        this.active.get(Player.BLACK).addAll(other.active.get(Player.BLACK));
-        this.captured.get(Player.WHITE).addAll(other.captured.get(Player.WHITE));
-        this.captured.get(Player.BLACK).addAll(other.captured.get(Player.BLACK));
+        this.squares = new Piece[128];
+        System.arraycopy(other.squares, 0, this.squares, 0, 128);
+        this.pieces.addAll(other.pieces);
+        this.captured.addAll(other.captured);
+        this.enPassant = other.enPassant;
+        this.blackCastleKingside = other.blackCastleKingside;
+        this.blackCastleQueenside = other.blackCastleQueenside;
+        this.whiteCastleKingside = other.whiteCastleKingside;
+        this.whiteCastleQueenside = other.whiteCastleQueenside;
     }
 
     public void initStandardChess() {
         currentPlayer = Player.WHITE;
-        Piece[][] result = new Piece[8][8];
+        enPassant = null;
+        whiteCastleKingside = true;
+        whiteCastleQueenside = true;
+        blackCastleKingside = true;
+        blackCastleQueenside = true;
+        Piece[] result = new Piece[128];
         // Setup pieces for the white player
-        result[4][0] = new Piece(Piece.Type.KING, Player.WHITE, 4, 0);
-        result[3][0] = new Piece(Piece.Type.QUEEN, Player.WHITE, 3, 0);
-        result[2][0] = new Piece(Piece.Type.BISHOP, Player.WHITE, 2, 0);
-        result[5][0] = new Piece(Piece.Type.BISHOP, Player.WHITE, 5, 0);
-        result[6][0] = new Piece(Piece.Type.KNIGHT, Player.WHITE, 6, 0);
-        result[1][0] = new Piece(Piece.Type.KNIGHT, Player.WHITE, 1, 0);
-        result[0][0] = new Piece(Piece.Type.ROOK, Player.WHITE, 0, 0);
-        result[7][0] = new Piece(Piece.Type.ROOK, Player.WHITE, 7, 0);
-        for (int x = 0; x < 8; x++) {
-            result[x][1] = new Piece(Piece.Type.PAWN, Player.WHITE, x, 1);
+        result[0] = new Piece(Piece.Type.ROOK, Player.WHITE, 0);
+        result[1] = new Piece(Piece.Type.KNIGHT, Player.WHITE, 1);
+        result[2] = new Piece(Piece.Type.BISHOP, Player.WHITE, 2);
+        result[3] = new Piece(Piece.Type.QUEEN, Player.WHITE, 3);
+        result[4] = new Piece(Piece.Type.KING, Player.WHITE, 4);
+        result[5] = new Piece(Piece.Type.BISHOP, Player.WHITE, 5);
+        result[6] = new Piece(Piece.Type.KNIGHT, Player.WHITE, 6);
+        result[7] = new Piece(Piece.Type.ROOK, Player.WHITE, 7);
+        for (int i = 16; i < 24; i++) {
+            result[i] = new Piece(Piece.Type.PAWN, Player.WHITE, i);
         }
         // Setup pieces for the black player
-        result[4][7] = new Piece(Piece.Type.KING, Player.BLACK, 4, 7);
-        result[3][7] = new Piece(Piece.Type.QUEEN, Player.BLACK, 3, 7);
-        result[2][7] = new Piece(Piece.Type.BISHOP, Player.BLACK, 2, 7);
-        result[5][7] = new Piece(Piece.Type.BISHOP, Player.BLACK, 5, 7);
-        result[6][7] = new Piece(Piece.Type.KNIGHT, Player.BLACK, 6, 7);
-        result[1][7] = new Piece(Piece.Type.KNIGHT, Player.BLACK, 1, 7);
-        result[0][7] = new Piece(Piece.Type.ROOK, Player.BLACK, 0, 7);
-        result[7][7] = new Piece(Piece.Type.ROOK, Player.BLACK, 7, 7);
-        for (int x = 0; x < 8; x++) {
-            result[x][6] = new Piece(Piece.Type.PAWN, Player.BLACK, x, 6);
+        result[112] = new Piece(Piece.Type.ROOK, Player.BLACK, 112);
+        result[113] = new Piece(Piece.Type.KNIGHT, Player.BLACK, 113);
+        result[114] = new Piece(Piece.Type.BISHOP, Player.BLACK, 114);
+        result[115] = new Piece(Piece.Type.QUEEN, Player.BLACK, 115);
+        result[116] = new Piece(Piece.Type.KING, Player.BLACK, 116);
+        result[117] = new Piece(Piece.Type.BISHOP, Player.BLACK, 117);
+        result[118] = new Piece(Piece.Type.KNIGHT, Player.BLACK, 118);
+        result[119] = new Piece(Piece.Type.ROOK, Player.BLACK, 119);
+        for (int i = 96; i < 104; i++) {
+            result[i] = new Piece(Piece.Type.PAWN, Player.BLACK, i);
         }
-        for (Piece[] boardRow : result) {
-            for (Piece piece : boardRow) {
-                if (piece != null) {
-                    active.get(piece.getBelongsTo()).add(piece);
-                }
+        for (Piece piece : result) {
+            if (piece != null) {
+                pieces.add(piece);
             }
         }
-        this.board = result;
+        this.squares = result;
         generateLegalMoves();
     }
 
-    public Piece[][] getBoard() {
-        return board;
+    public Piece[] getSquares() {
+        return squares;
+    }
+
+    public List<Piece> getPieces() {
+        return this.pieces;
     }
 
     public Player getCurrentPlayer() {
@@ -89,20 +103,20 @@ public class BoardState {
         this.currentPlayer = this.currentPlayer == Player.WHITE ? Player.BLACK : Player.WHITE;
     }
 
-    public BoardState makeMove(Coord target, Coord destination) {
-        Piece piece = board[target.getX()][target.getY()];
+    public BoardState makeMove(int target, int destination) {
+        Piece piece = squares[target];
         if (legalMoves.get(piece).contains(destination)) {
             BoardState result = new BoardState(this);
-            if (result.board[destination.getX()][destination.getY()] != null) {
-                captured.get(currentPlayer).add(result.board[destination.getX()][destination.getY()]);
-                active.get(currentPlayer == Player.WHITE ? Player.BLACK : Player.WHITE)
-                        .remove(result.board[destination.getX()][destination.getY()]);
-                result.board[destination.getX()][destination.getY()] = null;
+            // Check for and handle capturing
+            if (result.squares[destination] != null) {
+                captured.add(result.squares[destination]);
+                pieces.remove(result.squares[destination]);
+                result.squares[destination] = null;
             }
-            result.board[target.getX()][target.getY()] = null;
-            result.board[destination.getX()][destination.getY()] = piece;
-            piece.setCoords(destination);
-            piece.setMoved();
+            // Make the move
+            result.squares[target] = null;
+            result.squares[destination] = piece;
+            piece.setPosition(destination);
             result.swapCurrentPlayer();
             result.generateLegalMoves();
             return result;
@@ -111,146 +125,123 @@ public class BoardState {
     }
 
     private void generateLegalMoves() {
-        Piece myKing = null;
-        for (int y = 0; y < 8; y++) {
-            for (int x = 0; x < 8; x++) {
-                Piece piece = board[x][y];
-                if (piece != null) {
-                    switch (piece.getType()) {
-                        case PAWN:
-                            legalMoves.put(piece, generatePawnMoves(x, y, piece));
-                            break;
-                        case BISHOP:
-                            legalMoves.put(piece, generateBishopMoves(x, y, piece));
-                            break;
-                        case KNIGHT:
-                            legalMoves.put(piece, generateKnightMoves(x, y, piece));
-                            break;
-                        case ROOK:
-                            legalMoves.put(piece, generateRookMoves(x, y, piece));
-                            break;
-                        case QUEEN:
-                            legalMoves.put(piece, generateQueenMoves(x, y, piece));
-                            break;
-                        case KING:
-                            if (piece.getBelongsTo() == currentPlayer) {
-                                myKing = piece;
-                            }
-                            legalMoves.put(piece, generateKingMoves(x, y, piece));
-                            break;
-                    }
-                }
-            }
-        }
-
-        Player opponent = currentPlayer == Player.WHITE ? Player.BLACK : Player.WHITE;
-
-        // Remove the king's illegal moves (moving into check)
-        int movesRemoved = 0;
-        for (Coord move : legalMoves.get(myKing)) {
-            for (Piece piece : active.get(opponent)) {
-                if (legalMoves.get(piece).contains(move)) {
-                    legalMoves.get(myKing).remove(move);
-                    movesRemoved++;
+        Piece king = null;
+        // Generate all the pseudo-legal moves
+        for (Piece piece : pieces) {
+            switch (piece.getType()) {
+                case PAWN:
+                    legalMoves.put(piece, generatePawnMoves(piece));
                     break;
-                }
+                case BISHOP:
+                    legalMoves.put(piece, generatePieceMoves(piece, bishopDirs, 0));
+                    break;
+                case KNIGHT:
+                    legalMoves.put(piece, generatePieceMoves(piece, knightDirs, 1));
+                    break;
+                case ROOK:
+                    legalMoves.put(piece, generatePieceMoves(piece, rookDirs, 0));
+                    break;
+                case QUEEN:
+                    legalMoves.put(piece, generatePieceMoves(piece, queenDirs, 0));
+                    break;
+                case KING:
+                    if (piece.getOwner() == currentPlayer) {
+                        king = piece;
+                    }
+                    legalMoves.put(piece, generatePieceMoves(piece, queenDirs, 1));
+                    break;
             }
         }
-        Log.d("MOVES", "1st pass: removed " + movesRemoved);
-        movesRemoved = 0;
-        // Remove the remaining illegal moves (if in check)
-        List<Piece> attackers = getAttackers(myKing.getCoords());
-        Log.d("MOVES", "Num attackers: " + attackers.size());
+
+        // Prepare some references that will be often used below
+        Player opponent = currentPlayer == Player.WHITE ? Player.BLACK : Player.WHITE;
+        List<Piece> currentPieces = pieces.stream()
+                .filter(piece -> piece.getOwner() == currentPlayer).collect(Collectors.toList());
+        List<Piece> opponentPieces = pieces.stream()
+                .filter(piece -> piece.getOwner() == opponent).collect(Collectors.toList());
+
+        // Remove all the king's moves that would put him in check
+        List<Integer> legalKingMoves = new ArrayList<>();
+        for (int move: legalMoves.get(king)) {
+            if (findAttackers(move).size() == 0) {
+                legalKingMoves.add(move);
+            }
+        }
+        legalMoves.replace(king, legalKingMoves);
+
+        // Check for check
+        List<Piece> attackers = findAttackers(king.getPosition());
         if (attackers.size() == 1) {
-            // Remove all moves that don't take or block the attacker
-            Piece attacker = attackers.get(0);
-            List<Coord> attackVector = generateAttackVector(attacker, myKing.getCoords());
-            for (Piece piece : active.get(currentPlayer)) {
-                Coord legal = null;
-                List<Coord> moves = legalMoves.get(piece);
-                if (moves.contains(attacker.getCoords())) {
-                    movesRemoved++;
-                    legal = attacker.getCoords();
-                }
-                movesRemoved += moves.size();
-                moves.clear();
-                if (legal != null) {
-                    moves.add(legal);
-                }
-            }
+            // Find and remove all moves that don't block the check, or take the checking piece
         } else if (attackers.size() > 1) {
-            // Clear all legal moves except for the king's
-            for (Piece piece : active.get(currentPlayer)) {
-                if (piece.getType() == Piece.Type.KING) {
-                    continue;
-                }
-                legalMoves.get(piece).clear();
-            }
+            // Remove all moves except for the king's moves that get him out of check
+        } else {
+            // The king is not under check in this branch
+            // Check to see if king may castle, and add the move/s if so
         }
-        Log.d("MOVES", "2nd pass: removed " + movesRemoved);
+
+        // Check and add if there are en passant moves
+        if (enPassant != null) {
+
+        }
+
+        // Remove illegal moves for any pinned pieces
+
+        // Clear all the opponent's moves
     }
 
-    private List<Coord> generatePawnMoves(int x, int y, Piece pawn) {
-        List<Coord> result = new ArrayList<>();
-        int direction = pawn.getBelongsTo() == Player.WHITE ? 1 : -1;
+    private List<Integer> generatePawnMoves(Piece pawn) {
+        List<Integer> result = new ArrayList<>();
+        int direction = pawn.getOwner() == Player.WHITE ? N : S;
+        int startRank = pawn.getOwner() == Player.WHITE ? 1 : 6;
 
-        // One step ahead
-        int targetY = y + direction;
-        int targetX = x;
-        if (isWithinBounds(targetX, targetY) && board[targetX][targetY] == null) {
-            result.add(new Coord(targetX, targetY));
+        // One rank
+        int target = pawn.getPosition() + direction;
+        boolean firstStepClear = false;
+        if (isWithinBounds(target) && squares[target] == null) {
+            result.add(target);
+            firstStepClear = true;
         }
 
-        // Two steps ahead
-        if (!pawn.hasItMoved()) {
-            targetY = y + 2 * direction;
-
-            if (isWithinBounds(targetX, targetY) && board[targetX][targetY] == null) {
-                result.add(new Coord(targetX, targetY));
+        // Two ranks
+        if (isOnHomeRank(pawn) && firstStepClear) {
+            target += direction;
+            if (squares[target] == null) {
+                result.add(target);
             }
         }
 
-        // Attack west
-        targetX = x - 1;
-        targetY = y + direction;
-        if (isWithinBounds(targetX, targetY)) {
-            Piece square = board[targetX][targetY];
-            if (square != null && square.getBelongsTo() != pawn.getBelongsTo()) {
-                result.add(new Coord(targetX, targetY));
-            }
-        }
-
-        // Attack east
-        targetX = x + 1;
-        targetY = y + direction;
-        if (isWithinBounds(targetX, targetY)) {
-            Piece square = board[targetX][targetY];
-            if (square != null && square.getBelongsTo() != pawn.getBelongsTo()) {
-                result.add(new Coord(targetX, targetY));
+        // Attack NW and NE
+        int[] directions = {NW, NE};
+        for (int dir : directions) {
+            target = pawn.getPosition() + dir;
+            if (isWithinBounds(target)) {
+                Piece square = squares[target];
+                if (square != null && square.getOwner() != pawn.getOwner()) {
+                    result.add(target);
+                }
             }
         }
 
         return result;
     }
 
-    private List<Coord> generateSlidingMoves(int x, int y, Piece piece, int[][] directions, int limit) {
-        List<Coord> result = new ArrayList<>();
+    private List<Integer> generatePieceMoves(Piece piece, int[] directions, int limit) {
+        List<Integer> result = new ArrayList<>();
 
-        int targetX, targetY;
+        int target;
 
-        for (int i = 0; i < directions[0].length; i++) {
-            targetX = x;
-            targetY = y;
+        for (int i = 0; i < directions.length; i++) {
+            target = piece.getPosition();
 
             limit = limit == 0 ? 99 : limit;
             int distance = 0;
             while (distance < limit) {
-                targetX += directions[0][i];
-                targetY += directions[1][i];
-                if (isWithinBounds(targetX, targetY)) {
-                    Piece current = board[targetX][targetY];
-                    if (current == null || current.getBelongsTo() != piece.getBelongsTo()) {
-                        result.add(new Coord(targetX, targetY));
+                target += directions[i];
+                if (isWithinBounds(target)) {
+                    Piece current = squares[target];
+                    if (current == null || current.getOwner() != piece.getOwner()) {
+                        result.add(target);
                     }
                     if (current != null) {
                         break;
@@ -263,77 +254,49 @@ public class BoardState {
         }
         return result;
     }
-    
-    private List<Coord> generateBishopMoves(int x, int y, Piece bishop) {
-        int[][] directions = {{-1, 1, 1, -1}, {1, 1, -1, -1}};
-        return generateSlidingMoves(x, y, bishop, directions, 0);
-    }
-
-    private List<Coord> generateRookMoves(int x, int y, Piece rook) {
-        int[][] directions = {{0, 1, 0, -1}, {1, 0, -1, 0}};
-        return generateSlidingMoves(x, y, rook, directions, 0);
-    }
-    
-    private List<Coord> generateQueenMoves(int x, int y, Piece queen) {
-        int[][] directions = {{0, 1, 1, 1, 0, -1, -1, -1}, {1, 1, 0, -1, -1, -1, 0, 1}};
-        return generateSlidingMoves(x, y, queen, directions, 0);
-    }
-    
-    private List<Coord> generateKingMoves(int x, int y, Piece king) {
-        int[][] directions = {{0, 1, 1, 1, 0, -1, -1, -1}, {1, 1, 0, -1, -1, -1, 0, 1}};
-        return generateSlidingMoves(x, y, king, directions, 1);
-    }
-
-    private List<Coord> generateKnightMoves(int x, int y, Piece knight) {
-        int[][] directions = {{1, 2, 2, 1, -1, -2, -2, -1}, {2, 1, -1, -2, -2, -1, 1, 2}};
-        return generateSlidingMoves(x, y, knight, directions, 1);
-    }
 
     public boolean anyLegalMoves() {
         int total = 0;
-        for (List<Coord> moves : legalMoves.values()) {
+        for (List<Integer> moves : legalMoves.values()) {
             total += moves.size();
         }
         return total > 0;
     }
 
-    public List<Coord> generateAttackVector(Piece attacker, Coord target) {
-        List<Coord> result = new ArrayList<>();
-        if (attacker.getType() == Piece.Type.BISHOP ||
-            attacker.getType() == Piece.Type.ROOK ||
-            attacker.getType() == Piece.Type.QUEEN) {
-
-            Coord source = attacker.getCoords();
-            Coord current = new Coord(source);
-            int directionX = Integer.compare(target.getX(), source.getX());
-            int directionY = Integer.compare(target.getY(), source.getY());
-            do {
-                result.add(new Coord(current));
-                current.set(current.getX() + directionX, current.getY() + directionY);
-            } while (isWithinBounds(current.getX(), current.getY()) && !current.equals(target));
-        }
-
-        return result;
+    public List<Integer> generateAttackVector(Piece attacker, int target) {
+        return null;
     }
 
-    public List<Piece> getAttackers(Coord coord) {
+    public List<Piece> findAttackers(int position) {
         Player opponent = currentPlayer == Player.WHITE ? Player.BLACK : Player.WHITE;
         List<Piece> result = new ArrayList<>();
 
-        for (Piece piece : active.get(opponent)) {
-            if (legalMoves.get(piece).contains(coord)) {
+        for (Piece piece : pieces.stream().filter(p -> p.getOwner() == opponent)
+                .collect(Collectors.toList())) {
+            if (legalMoves.get(piece).contains(position)) {
                 result.add(piece);
             }
         }
-        Log.d("ATTACKERS", "On " + coord + ": " + result.size());
+        Log.d("ATTACKERS", "On " + position + ": " + result.size());
         return result;
     }
 
-    private boolean isWithinBounds(int x, int y) {
-        return x >= 0 && x < 8 && y >= 0 && y < 8;
+    private boolean isWithinBounds(int position) {
+        if (position >= 0 && position < 128) {
+            return (position & 0x88) == 0;
+        }
+        return false;
     }
 
-    public List<Coord> getLegalMoves(Piece piece) {
+    private boolean isOnHomeRank(Piece piece) {
+        if (piece.getType() == Piece.Type.PAWN) {
+            int homeRank = piece.getOwner() == Player.WHITE ? 1 : 6;
+            return ((piece.getPosition() & 0x70) >> 4) == homeRank;
+        }
+        return false;
+    }
+
+    public List<Integer> getLegalMoves(Piece piece) {
         return legalMoves.get(piece);
     }
 }
