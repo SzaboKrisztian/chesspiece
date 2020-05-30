@@ -2,12 +2,11 @@ package com.krisztianszabo.chesspiece.model;
 
 import androidx.annotation.Nullable;
 
-import org.jetbrains.annotations.NotNull;
-
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Piece {
+public class Piece implements Serializable {
 
     public enum Type {
         PAWN,
@@ -31,6 +30,8 @@ public class Piece {
     private Player owner;
     private int position;
 
+    public Piece() {}
+
     public Piece(Type type, Player belongsToPlayer, int position) {
         this.type = type;
         this.owner = belongsToPlayer;
@@ -43,6 +44,10 @@ public class Piece {
 
     public Type getType() {
         return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
     }
 
     public int getPosition() {
@@ -68,7 +73,6 @@ public class Piece {
         return super.hashCode();
     }
 
-    @NotNull
     public String toString() {
         return getCode();
     }

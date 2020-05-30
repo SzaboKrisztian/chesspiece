@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:onClick="newGame"
+        android:title="New game" />
+    <item
+        android:id="@+id/undoMove"
+        android:onClick="undoMove"
+        android:title="Undo move" />
+    <item
+        android:id="@+id/redoMove"
+        android:onClick="redoMove"
+        android:title="Redo move" />
+    <item
+        android:id="@+id/displaySettingsMenu"
+        android:title="Settings">
+        <menu>
+            <item
+                android:id="@+id/flipBoard"
+                android:onClick="toggleFlip"
+                android:title="Flip board" />
+            <item
+                android:id="@+id/flipOnMove"
+                android:onClick="toggleFlipOnMove"
+                android:title="Flip board on each move" />
+            <item
+                android:id="@+id/flipTop"
+                android:onClick="toggleFlipTop"
+                android:title="Flip top pieces" />
+            <item
+                android:id="@+id/legalMoves"
+                android:onClick="toggleLegalMoves"
+                android:title="Show legal moves" />
+        </menu>
+    </item>
+</menu>

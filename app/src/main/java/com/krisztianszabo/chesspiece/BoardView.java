@@ -8,7 +8,6 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -18,34 +17,49 @@ import android.view.View;
 
 import com.krisztianszabo.chesspiece.model.BoardState;
 import com.krisztianszabo.chesspiece.model.Piece;
+import com.krisztianszabo.chesspiece.model.Player;
+import com.krisztianszabo.chesspiece.offline.DisplaySettings;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BoardView extends SurfaceView implements SurfaceHolder.Callback, SurfaceView.OnTouchListener {
+public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
+        SurfaceView.OnTouchListener {
 
-    private boolean rotate = false;
+    private Integer promotionMove = null;
+    private ChessActivity parentActivity;
+    private BoardState boardState;
+    private boolean currentlyRotated = false;
+    private boolean rotateBoard = false;
+    private boolean rotateUpperPieces = false;
+    private boolean rotateBoardOnEachMove = false;
+    private boolean showLegalMoves = true;
     private SurfaceHolder holder;
     private Resources res = getContext().getResources();
     private Bitmap background = BitmapFactory.decodeResource(res, R.drawable.board);
     private Bitmap pieces = BitmapFactory.decodeResource(res, R.drawable.chess_pieces);
+    private Bitmap piecesFlipped = BitmapFactory.decodeResource(res, R.drawable.chess_pieces_flipped);
     private Bitmap selection = BitmapFactory.decodeResource(res, R.drawable.selection);
     private Bitmap legalMove = BitmapFactory.decodeResource(res, R.drawable.legal_move);
     private Map<String, Rect> pieceGfx = generateMap();
-    private BoardState boardState;
     private Paint defaultPaint;
+    private Paint debugPaint;
+    private Paint promotionPaint;
     private int totalWidth;
     private int totalHeight;
     private int squareWidth;
     private int squareHeight;
     private Matrix matrix;
-    private RectF source, dest;
     private Rect[][] squares;
+    private Rect promotionMenu;
+    private Rect promotionSquare = new Rect();
     private final int MARGIN = 0;
     private Rect selectedSquare = null;
     private Piece selectedPiece = null;
     private int[] selectedCoord = null;
+    private final String[] WH_PROMOTION = {"WH_KNIGHT", "WH_BISHOP", "WH_ROOK", "WH_QUEEN"};
+    private final String[] BL_PROMOTION = {"BL_KNIGHT", "BL_BISHOP", "BL_ROOK", "BL_QUEEN"};
 
     public BoardView(Context context) {
         super(context);
@@ -74,12 +88,33 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Su
         this.defaultPaint = new Paint();
         this.defaultPaint.setAntiAlias(true);
         this.defaultPaint.setDither(true);
-        this.boardState = new BoardState();
-        this.boardState.initStandardChess();
         this.matrix = new Matrix();
         this.matrix.setRotate(180);
-        this.source = new RectF();
-        this.dest = new RectF();
+        this.promotionPaint = new Paint();
+        this.debugPaint = new Paint();
+        this.debugPaint.setARGB(63, 255, 0, 0);
+    }
+
+    public void setParentActivity(ChessActivity parentActivity) {
+        this.parentActivity = parentActivity;
+    }
+
+    public void setBoardState(BoardState boardState) {
+        this.boardState = boardState;
+        this.invalidate();
+    }
+
+    public void setDisplaySettings(DisplaySettings settings) {
+        rotateBoard = settings.isRotateBoard();
+        rotateBoardOnEachMove = settings.isRotateBoardOneEachMove();
+        rotateUpperPieces = settings.isRotateTopPieces();
+        showLegalMoves = settings.isShowLegalMoves();
+        updateCurrentlyRotated();
+        invalidate();
+    }
+
+    private void updateCurrentlyRotated() {
+        currentlyRotated = rotateBoard != (rotateBoardOnEachMove && boardState.getCurrentPlayer() == Player.BLACK);
     }
 
     private Map<String, Rect> generateMap() {
@@ -116,6 +151,11 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Su
                         (x + 1) * squareWidth, (8 - y) * squareHeight);
             }
         }
+        this.promotionMenu = new Rect(
+                totalWidth / 2 - 2 * squareWidth,
+                totalHeight / 2 - squareHeight / 2,
+                totalWidth / 2 + 2 * squareWidth,
+                totalHeight / 2 + squareHeight / 2);
     }
 
     @Override
@@ -157,9 +197,13 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Su
             for (Piece piece : boardState.getPieces()) {
                 Rect src = pieceGfx.get(piece.getCode());
                 int[] coord = indexToCoords(piece.getPosition());
-                canvas.drawBitmap(pieces, src, squares[coord[0]][coord[1]], defaultPaint);
+                if (rotateUpperPieces && (currentlyRotated == (piece.getOwner() != Player.BLACK))) {
+                    canvas.drawBitmap(piecesFlipped, src, squares[coord[0]][coord[1]], defaultPaint);
+                } else {
+                    canvas.drawBitmap(pieces, src, squares[coord[0]][coord[1]], defaultPaint);
+                }
             }
-            if (selectedPiece != null) {
+            if (showLegalMoves && selectedPiece != null) {
                 List<Integer> legalMoves = boardState.getLegalMoves(selectedPiece);
                 for (int move : legalMoves) {
                     int[] coords = indexToCoords(move);
@@ -167,6 +211,29 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Su
                             squares[coords[0]][coords[1]], defaultPaint);
                 }
             }
+            if (promotionMove != null) {
+                promotionPaint.setARGB(50, 0, 0, 0);
+                canvas.drawRect(canvas.getClipBounds(), promotionPaint);
+                promotionPaint.setARGB(255, 255, 255, 255);
+                canvas.drawRect(promotionMenu, promotionPaint);
+                String[] options = boardState.getCurrentPlayer() == Player.WHITE ?
+                        WH_PROMOTION : BL_PROMOTION;
+                for (int i = 0; i < options.length; i++) {
+                    promotionSquare.set(promotionMenu.left + (squareWidth * i),
+                            promotionMenu.top,
+                            promotionMenu.left + (squareWidth * (i + 1)),
+                            promotionMenu.bottom);
+                    canvas.drawBitmap(pieces, pieceGfx.get(options[i]),
+                            promotionSquare, defaultPaint);
+                }
+            }
+//            for (int i = 8; i < 128; i++) {
+//                if ((i & 8) == 0) i += 8;
+//                if (boardState.getSquares()[i] != null) {
+//                    int[] coords = indexToCoords(i ^ 8);
+//                    canvas.drawRect(squares[coords[0]][coords[1]], debugPaint);
+//                }
+//            }
         }
     }
 
@@ -177,25 +244,57 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Su
             int x = t[0];
             int y = t[1];
             Piece piece = boardState.getSquares()[coordsToIndex(x, y)];
-            if (selectedPiece == null) {
+            if (promotionMove != null) {
+                int selectionIndex = coordsToIndex(selectedCoord[0], selectedCoord[1]);
+                int option = optionSelected(event);
+                if (option != -1) {
+                    int promotionBits;
+                    switch (option) {
+                        case 0:
+                            promotionBits = 2 << 10;
+                            break;
+                        case 1:
+                            promotionBits = 5 << 10;
+                            break;
+                        case 2:
+                            promotionBits = 6 << 10;
+                            break;
+                        default:
+                            promotionBits = 7 << 10;
+                            break;
+                    }
+                    parentActivity.makeMove(selectionIndex, promotionMove | promotionBits);
+                }
+                promotionMove = null;
+                deselect();
+            } else if (selectedPiece == null) {
                 if (piece != null) {
                     if (piece.getOwner() == boardState.getCurrentPlayer()) {
                         if (!boardState.getLegalMoves(piece).isEmpty()) {
-                            this.selectedSquare = squares[x][y];
+                            this.selectedSquare = currentlyRotated ? squares[7 - x][7 - y] : squares[x][y];
                             this.selectedPiece = piece;
                             this.selectedCoord = t;
                         }
                     }
                 }
             } else {
-                if (boardState.getLegalMoves(selectedPiece).contains(t)) {
-                    boardState = boardState.makeMove(
-                            coordsToIndex(selectedCoord[0], selectedCoord[1]), coordsToIndex(x, y));
-                    invalidate();
+                int target = coordsToIndex(x, y);
+                Integer move = boardState.getLegalMoves(selectedPiece).stream()
+                        .filter(m -> (m & 0x77) == target).findAny().orElse(null);
+                if (move != null) {
+                    int selectionIndex = coordsToIndex(selectedCoord[0], selectedCoord[1]);
+                    if (boardState.isPromotionMove(selectionIndex, move)) {
+                        promotionMove = move & 0x77;
+                    } else {
+                        parentActivity.makeMove(selectionIndex, move);
+                        updateCurrentlyRotated();
+                    }
                 }
-                deselect();
+                if (promotionMove == null) {
+                    deselect();
+                }
             }
-            this.invalidate();
+            invalidate();
             return true;
         }
         return false;
@@ -212,9 +311,25 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Su
         return super.performClick();
     }
 
+    private int optionSelected(MotionEvent event) {
+        int x = (int) event.getX() - MARGIN;
+        int y = (int) event.getY() - MARGIN;
+        if (x > promotionMenu.left && x < promotionMenu.right &&
+                y > promotionMenu.top && y < promotionMenu.bottom) {
+            return (x - promotionMenu.left) / squareWidth;
+        } else {
+            return -1;
+        }
+    }
+
     private int[] touchToCoord(MotionEvent event) {
-        return new int[]{((int)event.getX() - MARGIN) / squareWidth,
-                (totalHeight - ((int)event.getY() - MARGIN)) / squareHeight};
+        int x = ((int) event.getX() - MARGIN) / squareWidth;
+        int y = (totalHeight - ((int) event.getY() - MARGIN)) / squareHeight;
+        if (currentlyRotated) {
+            return new int[]{7 - x, 7 - y};
+        } else {
+            return new int[]{x, y};
+        }
     }
 
     private int coordsToIndex(int x, int y) {
@@ -222,6 +337,10 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback, Su
     }
 
     private int[] indexToCoords(int index) {
-        return new int[]{index & 0x07, (index & 0x70) >> 4};
+        if (currentlyRotated) {
+            return new int[]{7 - (index & 0x07), 7 - ((index & 0x70) >> 4)};
+        } else {
+            return new int[]{index & 0x07, (index & 0x70) >> 4};
+        }
     }
 }
