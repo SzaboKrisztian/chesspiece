@@ -6,6 +6,8 @@ public class DisplaySettings implements Serializable {
     private boolean rotateBoard;
     private boolean rotateBoardOneEachMove;
     private boolean rotateTopPieces;
+    private boolean showCoordinates;
+    private boolean showLastMove;
     private boolean showLegalMoves = true;
 
     public boolean isRotateBoard() {
@@ -38,5 +40,21 @@ public class DisplaySettings implements Serializable {
 
     public void setShowLegalMoves(boolean showLegalMoves) {
         this.showLegalMoves = showLegalMoves;
+    }
+
+    public boolean isShowCoordinates() {
+        return showCoordinates;
+    }
+
+    public void setShowCoordinates(boolean showCoordinates) {
+        this.showCoordinates = showCoordinates;
+    }
+
+    public boolean isShowLastMove() {
+        return showLastMove;
+    }
+
+    public void setShowLastMove(boolean showLastMove) {
+        this.showLastMove = showLastMove;
     }
 }

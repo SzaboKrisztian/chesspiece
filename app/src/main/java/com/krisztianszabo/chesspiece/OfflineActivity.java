@@ -3,10 +3,7 @@ package com.krisztianszabo.chesspiece;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
@@ -141,6 +138,20 @@ public class OfflineActivity extends AppCompatActivity implements ChessActivity 
         updateViews();
     }
 
+    public void toggleCoordinates(MenuItem menuItem) {
+        SettingsManager mgr = SettingsManager.getInstance(this);
+        mgr.toggleShowCoordinates(this);
+        boardView.setDisplaySettings(mgr.getSettings());
+        updateViews();
+    }
+
+    public void toggleLastMove(MenuItem menuItem) {
+        SettingsManager mgr = SettingsManager.getInstance(this);
+        mgr.toggleShowLastMove(this);
+        boardView.setDisplaySettings(mgr.getSettings());
+        updateViews();
+    }
+
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         menu.findItem(R.id.undoMove).setEnabled(game.canUndo());
@@ -165,6 +176,16 @@ public class OfflineActivity extends AppCompatActivity implements ChessActivity 
             menu.findItem(R.id.legalMoves).setTitle("Hide legal moves");
         } else {
             menu.findItem(R.id.legalMoves).setTitle("Show legal moves");
+        }
+        if (settings.isShowCoordinates()) {
+            menu.findItem(R.id.coordinates).setTitle("Hide coordinates");
+        } else {
+            menu.findItem(R.id.coordinates).setTitle("Show coordinates");
+        }
+        if (settings.isShowLastMove()) {
+            menu.findItem(R.id.lastmove).setTitle("Hide last move");
+        } else {
+            menu.findItem(R.id.lastmove).setTitle("Show last move");
         }
         return true;
     }

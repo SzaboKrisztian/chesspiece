@@ -24,6 +24,7 @@ public class BoardState implements Serializable {
     private Integer enPassant;
     private int fiftyMoves;
     private Piece attackMarker = new Piece();
+    private Integer[] lastmove;
 
     private static final int N = 16, NE = 17, E = 1, SE = -15, S = -16, SW = -17, W = -1, NW = 15;
     private static final int[] bishopDirs = {NE, SE, SW, NW};
@@ -112,7 +113,7 @@ public class BoardState implements Serializable {
         generateLegalMoves();
     }
 
-    public void initTestPosition() {
+    public void initPromotionTest() {
         currentPlayer = Player.WHITE;
         enPassant = null;
         fiftyMoves = 0;
@@ -129,6 +130,116 @@ public class BoardState implements Serializable {
         result[116] = new Piece(Piece.Type.KING, Player.BLACK, 116);
         result[16] = new Piece(Piece.Type.PAWN, Player.BLACK, 16);
         result[23] = new Piece(Piece.Type.PAWN, Player.BLACK, 23);
+        for (Piece piece : result) {
+            if (piece != null) {
+                pieces.add(piece);
+            }
+        }
+        this.squares = result;
+        generateLegalMoves();
+    }
+
+    public void initEnPassantTest() {
+        currentPlayer = Player.BLACK;
+        enPassant = null;
+        fiftyMoves = 0;
+        whiteCastleKingside = false;
+        whiteCastleQueenside = false;
+        blackCastleKingside = false;
+        blackCastleQueenside = false;
+        Piece[] result = new Piece[128];
+        // Setup pieces for the white player
+        result[4] = new Piece(Piece.Type.KING, Player.WHITE, 4);
+        result[64] = new Piece(Piece.Type.PAWN, Player.WHITE, 64);
+        result[66] = new Piece(Piece.Type.PAWN, Player.WHITE, 66);
+        result[68] = new Piece(Piece.Type.PAWN, Player.WHITE, 68);
+        result[70] = new Piece(Piece.Type.PAWN, Player.WHITE, 70);
+        // Setup pieces for the black player
+        result[116] = new Piece(Piece.Type.KING, Player.BLACK, 116);
+        result[97] = new Piece(Piece.Type.PAWN, Player.BLACK, 97);
+        result[99] = new Piece(Piece.Type.PAWN, Player.BLACK, 99);
+        result[101] = new Piece(Piece.Type.PAWN, Player.BLACK, 101);
+        result[103] = new Piece(Piece.Type.PAWN, Player.BLACK, 103);
+        for (Piece piece : result) {
+            if (piece != null) {
+                pieces.add(piece);
+            }
+        }
+        this.squares = result;
+        generateLegalMoves();
+    }
+
+    public void initEnPassantTest2() {
+        currentPlayer = Player.WHITE;
+        enPassant = null;
+        fiftyMoves = 0;
+        whiteCastleKingside = false;
+        whiteCastleQueenside = false;
+        blackCastleKingside = false;
+        blackCastleQueenside = false;
+        Piece[] result = new Piece[128];
+        // Setup pieces for the white player
+        result[4] = new Piece(Piece.Type.KING, Player.WHITE, 4);
+        result[16] = new Piece(Piece.Type.PAWN, Player.WHITE, 16);
+        result[18] = new Piece(Piece.Type.PAWN, Player.WHITE, 18);
+        result[20] = new Piece(Piece.Type.PAWN, Player.WHITE, 20);
+        result[22] = new Piece(Piece.Type.PAWN, Player.WHITE, 22);
+        // Setup pieces for the black player
+        result[116] = new Piece(Piece.Type.KING, Player.BLACK, 116);
+        result[49] = new Piece(Piece.Type.PAWN, Player.BLACK, 49);
+        result[51] = new Piece(Piece.Type.PAWN, Player.BLACK, 51);
+        result[53] = new Piece(Piece.Type.PAWN, Player.BLACK, 53);
+        result[55] = new Piece(Piece.Type.PAWN, Player.BLACK, 55);
+        for (Piece piece : result) {
+            if (piece != null) {
+                pieces.add(piece);
+            }
+        }
+        this.squares = result;
+        generateLegalMoves();
+    }
+
+    public void initCheckPassantTest() {
+        currentPlayer = Player.BLACK;
+        enPassant = null;
+        fiftyMoves = 0;
+        whiteCastleKingside = false;
+        whiteCastleQueenside = false;
+        blackCastleKingside = false;
+        blackCastleQueenside = false;
+        Piece[] result = new Piece[128];
+        // Setup pieces for the white player
+        result[71] = new Piece(Piece.Type.KING, Player.WHITE, 71);
+        result[68] = new Piece(Piece.Type.PAWN, Player.WHITE, 68);
+        // Setup pieces for the black player
+        result[116] = new Piece(Piece.Type.KING, Player.BLACK, 116);
+        result[64] = new Piece(Piece.Type.QUEEN, Player.BLACK, 64);
+        result[99] = new Piece(Piece.Type.PAWN, Player.BLACK, 99);
+        for (Piece piece : result) {
+            if (piece != null) {
+                pieces.add(piece);
+            }
+        }
+        this.squares = result;
+        generateLegalMoves();
+    }
+
+    public void initCheckPassantTest2() {
+        currentPlayer = Player.BLACK;
+        enPassant = null;
+        fiftyMoves = 0;
+        whiteCastleKingside = false;
+        whiteCastleQueenside = false;
+        blackCastleKingside = false;
+        blackCastleQueenside = false;
+        Piece[] result = new Piece[128];
+        // Setup pieces for the white player
+        result[64] = new Piece(Piece.Type.KING, Player.WHITE, 64);
+        result[68] = new Piece(Piece.Type.PAWN, Player.WHITE, 68);
+        // Setup pieces for the black player
+        result[116] = new Piece(Piece.Type.KING, Player.BLACK, 116);
+        result[71] = new Piece(Piece.Type.QUEEN, Player.BLACK, 71);
+        result[99] = new Piece(Piece.Type.PAWN, Player.BLACK, 99);
         for (Piece piece : result) {
             if (piece != null) {
                 pieces.add(piece);
@@ -181,6 +292,10 @@ public class BoardState implements Serializable {
 
     public int getFiftyMoves() {
         return fiftyMoves;
+    }
+
+    public Integer[] getLastmove() {
+        return lastmove;
     }
 
     private void swapCurrentPlayer() {
@@ -295,6 +410,7 @@ public class BoardState implements Serializable {
             // And finally, in all cases, we actually make the move
             result.squares[piecePos] = null;
             result.squares[destination] = piece;
+            result.lastmove = new Integer[]{piecePos, destination};
             piece.setPosition(destination);
             if (clearEnPassant) {
                 result.enPassant = null;
@@ -419,14 +535,15 @@ public class BoardState implements Serializable {
         }
 
         // Check and add if there are en passant moves
+        int pawnDir = currentPlayer == Player.WHITE ? N : S;
         if (enPassant != null) {
-            if (canTakeEnPassant(enPassant + W)) {
+            if (isCurrentPlayersPawn(enPassant + W)) {
                 Piece pawn = squares[enPassant + W];
-                legalMoves.get(pawn).add((enPassant + N) | enPassantBit);
+                legalMoves.get(pawn).add((enPassant + pawnDir) | enPassantBit);
             }
-            if (canTakeEnPassant(enPassant + E)) {
+            if (isCurrentPlayersPawn(enPassant + E)) {
                 Piece pawn = squares[enPassant + E];
-                legalMoves.get(pawn).add((enPassant + N) | enPassantBit);
+                legalMoves.get(pawn).add((enPassant + pawnDir) | enPassantBit);
             }
         }
 
@@ -439,7 +556,7 @@ public class BoardState implements Serializable {
                 // The piece and the king are in line with at least one square separating them
                 List<Piece> potentiallyPinned = new ArrayList<>();
                 for (int index : vector) {
-                    if (squares[index] != null && squares[index].getOwner() == currentPlayer) {
+                    if (squares[index] != null/* && squares[index].getOwner() == currentPlayer*/) {
                         potentiallyPinned.add(squares[index]);
                     }
                 }
@@ -474,8 +591,9 @@ public class BoardState implements Serializable {
                                     firstPawn : secondPawn;
                             Piece enemyPawn = myPawn == firstPawn ? secondPawn : firstPawn;
                             if (enemyPawn.getPosition() == enPassant &&
-                                    legalMoves.get(myPawn).contains(enPassant + N)) {
-                                legalMoves.get(myPawn).remove(enPassant + N);
+                                    legalMoves.get(myPawn).contains(enPassant + pawnDir + enPassantBit)) {
+                                int index = legalMoves.get(myPawn).indexOf(enPassant + pawnDir + enPassantBit);
+                                legalMoves.get(myPawn).remove(index);
                             }
                         }
                     }
@@ -489,15 +607,45 @@ public class BoardState implements Serializable {
         }
     }
 
+    public boolean enoughMaterial() {
+        int whiteMinorPieces = 0;
+        int blackMinorPieces = 0;
+        for (Piece piece : pieces) {
+            if (piece.getType() == Piece.Type.KING) continue;
+            if (piece.getType() == Piece.Type.QUEEN ||
+                piece.getType() == Piece.Type.ROOK ||
+                piece.getType() == Piece.Type.PAWN) {
+                return true;
+            }
+            if (piece.getType() == Piece.Type.KNIGHT || piece.getType() == Piece.Type.BISHOP) {
+                if (piece.getOwner() == Player.WHITE) {
+                    whiteMinorPieces++;
+                } else {
+                    blackMinorPieces++;
+                }
+            }
+            if (whiteMinorPieces > 1 || blackMinorPieces > 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isSquareBlack(int index) {
+        int x = index & 0x07;
+        int y = (index & 0x70) >> 4;
+        return (x + y) % 2 == 0;
+    }
+
     private boolean isCastlingClear(int kingPosition, int direction) {
         return squares[(kingPosition + direction) | 8] == null &&
                squares[(kingPosition + (2 * direction)) | 8] == null;
     }
 
-    private boolean canTakeEnPassant(int square) {
+    private boolean isCurrentPlayersPawn(int square) {
         if (isWithinBounds(square)) {
             Piece piece = squares[square];
-            return piece != null && piece.getOwner() != currentPlayer &&
+            return piece != null && piece.getOwner() == currentPlayer &&
                     piece.getType() == Piece.Type.PAWN;
         }
         return false;
@@ -643,7 +791,7 @@ public class BoardState implements Serializable {
 
     private Integer getDirection(int source, int destination) {
         int diff = destination - source;
-        if (Math.abs(diff) < 7) {
+        if (Math.abs(diff) <= 7) {
             return diff < 0 ? W : E;
         }
         for (int dir : queenDirs) {

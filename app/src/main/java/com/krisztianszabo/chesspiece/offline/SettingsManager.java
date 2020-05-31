@@ -51,6 +51,16 @@ public class SettingsManager {
         saveSettings(context);
     }
 
+    public void toggleShowCoordinates(Context context) {
+        settings.setShowCoordinates(!settings.isShowCoordinates());
+        saveSettings(context);
+    }
+
+    public void toggleShowLastMove(Context context) {
+        settings.setShowLastMove(!settings.isShowLastMove());
+        saveSettings(context);
+    }
+
     public void saveSettings(Context context) {
         try {
             File outFile = new File(context.getCacheDir(), "settings.dat");

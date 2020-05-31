@@ -7,9 +7,14 @@ public class Game implements Serializable {
     public enum State {
         WHITE_MOVES,
         BLACK_MOVES,
-        WHITE_WINS,
-        BLACK_WINS,
-        DRAW
+        WHITE_WINS_CHECKMATE,
+        BLACK_WINS_CHECKMATE,
+        WHITE_WINS_RESIGNATION,
+        BLACK_WINS_RESIGNATION,
+        DRAW_MATERIAL,
+        DRAW_STALEMATE,
+        DRAW_FIFTY,
+        DRAW_AGREEMENT
     }
 
     private Stack<BoardState> undoneMoves = new Stack<>();
@@ -22,6 +27,10 @@ public class Game implements Serializable {
         return state;
     }
 
+    public void setState(State state) {
+        this.state = state;
+    }
+
     public BoardState getBoard() {
         return boardHistory.empty() ? null : boardHistory.peek();
     }
@@ -31,6 +40,10 @@ public class Game implements Serializable {
         BoardState board = new BoardState();
         board.initStandardChess();
 //        board.initTestPosition();
+//        board.initEnPassantTest();
+//        board.initEnPassantTest2();
+//        board.initCheckPassantTest();
+//        board.initCheckPassantTest2();
         board.generateLegalMoves();
         this.boardHistory.push(board);
         this.state = checkState();
@@ -56,14 +69,18 @@ public class Game implements Serializable {
         BoardState board = this.boardHistory.peek();
         if (board.anyLegalMoves()) {
             if (board.getFiftyMoves() > 100) {
-                return State.DRAW;
+                return State.DRAW_FIFTY;
+            } else if (!board.enoughMaterial()) {
+                return State.DRAW_MATERIAL;
             } else {
-                return board.getCurrentPlayer() == Player.WHITE ? State.WHITE_MOVES : State.BLACK_MOVES;
+                return board.getCurrentPlayer() == Player.WHITE ?
+                        State.WHITE_MOVES : State.BLACK_MOVES;
             }
         } else if (board.isKingInCheck()) {
-            return board.getCurrentPlayer() == Player.WHITE ? State.BLACK_WINS : State.WHITE_WINS;
+            return board.getCurrentPlayer() == Player.WHITE ?
+                    State.BLACK_WINS_CHECKMATE : State.WHITE_WINS_CHECKMATE;
         } else {
-            return State.DRAW;
+            return State.DRAW_STALEMATE;
         }
     }
 

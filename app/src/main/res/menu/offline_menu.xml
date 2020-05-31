@@ -32,6 +32,14 @@
                 android:id="@+id/legalMoves"
                 android:onClick="toggleLegalMoves"
                 android:title="Show legal moves" />
+            <item
+                android:id="@+id/coordinates"
+                android:onClick="toggleCoordinates"
+                android:title="Show coordinates" />
+            <item
+                android:id="@+id/lastmove"
+                android:onClick="toggleLastMove"
+                android:title="Show last move" />
         </menu>
     </item>
 </menu>
