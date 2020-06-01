@@ -24,6 +24,7 @@ public class SessionManager {
     private final static String HOST = "http://10.0.2.2:3000/";
     private final static String SET_COOKIE_KEY = "Set-Cookie";
     private final static String COOKIE_KEY = "Cookie";
+    private final static String USERNAME_KEY = "Username";
     private static SessionManager instance;
 
     private SessionManager() { }
@@ -53,6 +54,7 @@ public class SessionManager {
                     String res = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
                     SharedPreferences.Editor editor = PreferenceManager.
                             getDefaultSharedPreferences(activity).edit();
+                    editor.putString(USERNAME_KEY, username);
                     editor.putString(COOKIE_KEY, res);
                     editor.apply();
                 }
@@ -89,6 +91,11 @@ public class SessionManager {
         }
     }
 
+    public String getUsername(Activity activity) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
+        return prefs.getString(USERNAME_KEY, null);
+    }
+
     public void addSessionCookie(Map<String, String> headers, String sessionId) {
         StringBuilder sb = new StringBuilder();
         sb.append("connect.sid=").append(sessionId);
@@ -108,5 +115,11 @@ public class SessionManager {
             String sessionId = prefs.getString(COOKIE_KEY, null);
             headers.put(COOKIE_KEY, Arrays.asList("connect.sid=" + sessionId));
         });
+    }
+
+    public void logout(Activity activity) {
+        SharedPreferences.Editor editor = PreferenceManager.
+                getDefaultSharedPreferences(activity).edit();
+        editor.remove(USERNAME_KEY).remove(COOKIE_KEY).apply();
     }
 }

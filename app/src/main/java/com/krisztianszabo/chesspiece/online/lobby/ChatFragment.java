@@ -21,7 +21,7 @@ import org.json.JSONObject;
 
 import io.socket.client.Socket;
 
-public class LobbyFragment extends Fragment {
+public class ChatFragment extends Fragment {
 
     private OnlineActivity parent;
     private Socket socket;
@@ -33,7 +33,7 @@ public class LobbyFragment extends Fragment {
         this.socket = socket;
     }
 
-    public LobbyFragment(OnlineActivity parent) {
+    public ChatFragment(OnlineActivity parent) {
         this.parent = parent;
     }
 
@@ -51,7 +51,7 @@ public class LobbyFragment extends Fragment {
 
         chatOutput.setLayoutManager(lmgr);
         adapter = new ChatViewAdapter();
-        parent.setAdapter(adapter);
+        adapter.setMessages(parent.getMessages());
         chatOutput.setAdapter(adapter);
 
         view.findViewById(R.id.lobby_btn_send).setOnClickListener(v -> {
@@ -71,9 +71,9 @@ public class LobbyFragment extends Fragment {
     }
 
     public void updateChat() {
-        if (adapter != null) {
+        if (adapter != null && chatOutput != null) {
             adapter.notifyDataSetChanged();
+            chatOutput.smoothScrollToPosition(adapter.getItemCount() - 1);
         }
-        chatOutput.smoothScrollToPosition(adapter.getItemCount() - 1);
     }
 }

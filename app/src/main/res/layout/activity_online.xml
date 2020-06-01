@@ -6,6 +6,41 @@
     android:layout_height="match_parent"
     tools:context=".online.OnlineActivity">
 
+    <LinearLayout
+        android:id="@+id/online_llt_button_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/online_btn_chat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="showChat"
+            android:text="Chat" />
+
+        <Button
+            android:id="@+id/online_btn_userlist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="showUserList"
+            android:text="Players" />
+
+        <Button
+            android:id="@+id/online_btn_games"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="showMyGames"
+            android:text="My Games" />
+    </LinearLayout>
+
     <FrameLayout
         android:id="@+id/theFrame"
         android:layout_width="0dp"
@@ -13,7 +48,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/online_llt_button_container">
 
     </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
