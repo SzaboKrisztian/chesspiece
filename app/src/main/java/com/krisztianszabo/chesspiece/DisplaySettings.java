@@ -1,4 +1,4 @@
-package com.krisztianszabo.chesspiece.offline;
+package com.krisztianszabo.chesspiece;
 
 import java.io.Serializable;
 

@@ -4,17 +4,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.krisztianszabo.chesspiece.model.BoardState;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.krisztianszabo.chesspiece.offline.OfflineActivity;
+import com.krisztianszabo.chesspiece.online.OnlineActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void playOnline(View view) {
-
+        Intent intent = new Intent(this, OnlineActivity.class);
+        startActivity(intent);
     }
 }

@@ -1,4 +1,4 @@
-package com.krisztianszabo.chesspiece;
+package com.krisztianszabo.chesspiece.offline;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -9,10 +9,13 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.krisztianszabo.chesspiece.BoardView;
+import com.krisztianszabo.chesspiece.ChessActivity;
+import com.krisztianszabo.chesspiece.R;
 import com.krisztianszabo.chesspiece.model.Game;
 import com.krisztianszabo.chesspiece.model.GameManager;
-import com.krisztianszabo.chesspiece.offline.DisplaySettings;
-import com.krisztianszabo.chesspiece.offline.SettingsManager;
+import com.krisztianszabo.chesspiece.DisplaySettings;
+import com.krisztianszabo.chesspiece.SettingsManager;
 
 public class OfflineActivity extends AppCompatActivity implements ChessActivity {
 
@@ -52,19 +55,21 @@ public class OfflineActivity extends AppCompatActivity implements ChessActivity 
     private void updateGameMessage() {
         String message = null;
         switch (game.getState()) {
-            case WHITE_WINS:
-                message = "Checkmate! White wins.";
-                break;
-            case BLACK_WINS:
-                message = "Checkmate! Black wins.";
-                break;
             case WHITE_MOVES:
                 message = "It's white's move.";
                 break;
             case BLACK_MOVES:
                 message = "It's black's move.";
                 break;
-            case DRAW:
+            case WHITE_WINS_CHECKMATE:
+                message = "Checkmate! White wins.";
+                break;
+            case BLACK_WINS_CHECKMATE:
+                message = "Checkmate! Black wins.";
+                break;
+            case DRAW_FIFTY:
+            case DRAW_MATERIAL:
+            case DRAW_STALEMATE:
                 message = "It's a draw.";
                 break;
         }
