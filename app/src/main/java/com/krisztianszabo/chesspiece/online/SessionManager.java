@@ -3,6 +3,7 @@ package com.krisztianszabo.chesspiece.online;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
@@ -21,7 +22,6 @@ import io.socket.engineio.client.Transport;
 
 public class SessionManager {
 
-    private final static String HOST = "http://10.0.2.2:3000/";
     private final static String SET_COOKIE_KEY = "Set-Cookie";
     private final static String COOKIE_KEY = "Cookie";
     private final static String USERNAME_KEY = "Username";
@@ -36,9 +36,13 @@ public class SessionManager {
         return instance;
     }
 
-    public void login(Activity activity, String username, String password, AuthTest callback) {
-        StringRequest request = new StringRequest(Request.Method.POST, HOST + "auth/login",
-                response -> callback.respond(true), error -> callback.respond(false)) {
+    public void login(OnlineActivity activity, String username, String password, AuthTest callback) {
+        String host = activity.getHost();
+        StringRequest request = new StringRequest(Request.Method.POST, host + "auth/login",
+                response -> callback.respond(true), error -> {
+            Toast.makeText(activity, "Could not connect to host", Toast.LENGTH_LONG).show();
+            callback.respond(false);
+        }) {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
@@ -64,12 +68,13 @@ public class SessionManager {
         RequestQueueManager.getInstance(activity).addToRequestQueue(request);
     }
 
-    public void isAuthenticated(Activity activity, AuthTest callback) {
+    public void isAuthenticated(OnlineActivity activity, AuthTest callback) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
         String sessionId = prefs.getString(COOKIE_KEY, null);
+        String host =activity.getHost();
 
         if (sessionId != null) {
-            StringRequest request = new StringRequest(Request.Method.GET, HOST + "auth/test",
+            StringRequest request = new StringRequest(Request.Method.GET, host + "auth/test",
                     response -> callback.respond(true),
                     error -> callback.respond(false)) {
                 @Override

@@ -15,13 +15,8 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Locale;
-import java.util.TimeZone;
 
 public class ChatViewHolder extends RecyclerView.ViewHolder {
 
@@ -58,6 +53,6 @@ public class ChatViewHolder extends RecyclerView.ViewHolder {
 
     private String fmt(long timestamp) {
         Date date = new Date(timestamp);
-        return new SimpleDateFormat("hh:mm:ss", Locale.US).format(date);
+        return new SimpleDateFormat("HH:mm:ss", Locale.US).format(date);
     }
 }

@@ -7,28 +7,29 @@
     android:background="@drawable/list_item_border">
 
     <TextView
-        android:id="@+id/lobby_chat_txt_meta"
+        android:id="@+id/games_list_players"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:textSize="12sp"
+        android:text="White: player vs Black: you"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/lobby_chat_txt_content"
+        android:id="@+id/games_list_status"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="4dp"
-        android:textColor="#000000"
+        android:layout_marginBottom="8dp"
+        android:text="Your turn. 6 moves in."
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lobby_chat_txt_meta" />
+        app:layout_constraintTop_toBottomOf="@+id/games_list_players" />
 </androidx.constraintlayout.widget.ConstraintLayout>

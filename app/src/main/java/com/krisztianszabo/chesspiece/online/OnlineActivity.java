@@ -1,5 +1,6 @@
 package com.krisztianszabo.chesspiece.online;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -9,8 +10,12 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 
+import com.krisztianszabo.chesspiece.MainActivity;
 import com.krisztianszabo.chesspiece.R;
+import com.krisztianszabo.chesspiece.online.games.GamesListFragment;
 import com.krisztianszabo.chesspiece.online.lobby.ChatFragment;
 import com.krisztianszabo.chesspiece.online.lobby.UserListFragment;
 
@@ -28,42 +33,49 @@ import io.socket.client.Socket;
 
 public class OnlineActivity extends AppCompatActivity {
 
-    private final String HOST = "http://10.0.2.2:3310/";
-    private ChatFragment chatFragment = new ChatFragment(this);
-    private UserListFragment userListFragment = new UserListFragment(this);
+    private final String LOGIN_FRAGMENT = "Login fragment";
+    private final String CHAT_FRAGMENT = "Chat fragment";
+    private final String USERS_FRAGMENT = "Users fragment";
+    private final String GAMES_FRAGMENT = "Games fragment";
+    private String host;
+    private LoginFragment loginFragment = new LoginFragment();
+    private ChatFragment chatFragment = new ChatFragment();
+    private UserListFragment userListFragment = new UserListFragment();
+    private GamesListFragment gamesListFragment = new GamesListFragment();
     private Socket socket;
-    private List<JSONObject> lobbyMessages = new ArrayList<>();
-    private List<String> userList = new ArrayList<>();
-    private List<JSONObject> myGames = new ArrayList<>();
     private String username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_online);
-        userListFragment.setUsers(userList);
+        // Get stored host name
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        host = prefs.getString(MainActivity.HOST_KEY, "");
 
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.theFrame, new LoginFragment(this))
-                .commit();
-    }
+        if (host.isEmpty()) {
+            Toast.makeText(this, "Host address not configured.", Toast.LENGTH_LONG).show();
+            finish();
+        }
 
-    public List<JSONObject> getMessages() {
-        return this.lobbyMessages;
-    }
+        loginFragment.setParent(this);
+        userListFragment.setParent(this);
+        gamesListFragment.setParent(this);
 
-    public List<String> getUserList() {
-        return this.userList;
+        showLogin();
     }
 
     public String getUsername() {
         return username;
     }
 
+    public String getHost() {
+        return host;
+    }
+
     public void isAuthenticated() {
         try {
-            socket = IO.socket(HOST);
+            socket = IO.socket(host);
             socket.io().on(Manager.EVENT_TRANSPORT,
                     args -> SessionManager.getInstance().attachCookie(this, args));
             socket.on("lobby message", args -> addMessageAndNotify((JSONObject)args[0]))
@@ -73,7 +85,7 @@ public class OnlineActivity extends AppCompatActivity {
                     .on("mygames", args -> parseMyGames((JSONObject)args[0]));
             socket.connect();
             username = SessionManager.getInstance().getUsername(this);
-            Log.d("SOCKET.IO", "Socket.io connection successfully established to " + HOST);
+            socket.emit("mygames");
         } catch (URISyntaxException e) {
             Log.e("SOCKET.IO", "Error opening socket: " + e);
         }
@@ -94,8 +106,7 @@ public class OnlineActivity extends AppCompatActivity {
     }
 
     private void addMessageAndNotify(JSONObject message) {
-        lobbyMessages.add(message);
-        runOnUiThread(() -> chatFragment.updateChat());
+        runOnUiThread(() -> chatFragment.addMessageAndUpdate(message));
     }
 
     private void updateUserList(JSONObject data) {
@@ -105,30 +116,43 @@ public class OnlineActivity extends AppCompatActivity {
             for (int i = 0; i < arr.length(); i++) {
                 result.add(arr.getString(i));
             }
-            this.userList.clear();
-            this.userList.addAll(result);
-            runOnUiThread(() -> userListFragment.update());
+            runOnUiThread(() -> userListFragment.updateUsers(result));
         } catch (JSONException e) {
             Log.e("USERLIST", "Error parsing json data: " + e);
         }
     }
 
+    private void showLogin() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.theFrame, loginFragment, LOGIN_FRAGMENT)
+                .commit();
+    }
+
     public void showChat(View view) {
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.theFrame, chatFragment)
+                .replace(R.id.theFrame, chatFragment, CHAT_FRAGMENT)
                 .commit();
     }
 
     public void showUserList(View view) {
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.theFrame, userListFragment)
+                .replace(R.id.theFrame, userListFragment, USERS_FRAGMENT)
                 .commit();
     }
 
     public void showMyGames(View view) {
-        socket.emit("mygames");
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.theFrame, gamesListFragment, GAMES_FRAGMENT)
+                .commit();
+    }
+
+    private boolean isFragmentVisible(String tag) {
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(tag);
+        return fragment != null && fragment.isVisible();
     }
 
     private void parseChallenge(JSONObject data) {
@@ -154,6 +178,16 @@ public class OnlineActivity extends AppCompatActivity {
                         }
                     );
                     break;
+                case "error":
+                    runOnUiThread(() -> {
+                                try {
+                                    showInfoPopup(data.getString("message"));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                    );
+                    break;
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -161,7 +195,17 @@ public class OnlineActivity extends AppCompatActivity {
     }
 
     private void parseMyGames(JSONObject data) {
-        Log.d("MYGAMES", data.toString());
+        try {
+            JSONArray games = data.getJSONArray("data");
+            List<JSONObject> result = new ArrayList<>();
+            for (int i = 0; i < games.length(); i++) {
+                result.add(games.getJSONObject(i));
+            }
+            runOnUiThread(() ->gamesListFragment.setGames(result));
+        } catch (JSONException e) {
+            Toast.makeText(this, "Error parsing JSON game data.", Toast.LENGTH_LONG)
+                    .show();
+        }
     }
 
     private void showChallengePopup(JSONObject data) {
@@ -206,10 +250,11 @@ public class OnlineActivity extends AppCompatActivity {
     public void logout(MenuItem menuItem) {
         SessionManager.getInstance().logout(this);
         findViewById(R.id.online_llt_button_container).setVisibility(View.GONE);
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.theFrame, new LoginFragment(this))
-                .commit();
+        chatFragment.clearData();
+        userListFragment.clearData();
+        gamesListFragment.clearData();
+        username = null;
+        showLogin();
         socket.disconnect();
     }
 }

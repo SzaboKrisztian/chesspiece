@@ -19,24 +19,22 @@ import com.krisztianszabo.chesspiece.online.OnlineActivity;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.socket.client.Socket;
 
 public class ChatFragment extends Fragment {
 
-    private OnlineActivity parent;
     private Socket socket;
     private TextView chatInput;
     private RecyclerView chatOutput;
     private ChatViewAdapter adapter;
+    private List<JSONObject> messages = new ArrayList<>();
 
     public void setSocket(Socket socket) {
         this.socket = socket;
     }
-
-    public ChatFragment(OnlineActivity parent) {
-        this.parent = parent;
-    }
-
 
     @Nullable
     @Override
@@ -51,7 +49,7 @@ public class ChatFragment extends Fragment {
 
         chatOutput.setLayoutManager(lmgr);
         adapter = new ChatViewAdapter();
-        adapter.setMessages(parent.getMessages());
+        adapter.setMessages(messages);
         chatOutput.setAdapter(adapter);
 
         view.findViewById(R.id.lobby_btn_send).setOnClickListener(v -> {
@@ -70,10 +68,20 @@ public class ChatFragment extends Fragment {
         return view;
     }
 
-    public void updateChat() {
+    public void addMessageAndUpdate(JSONObject message) {
+        messages.add(message);
+        updateChat();
+    }
+
+    private void updateChat() {
         if (adapter != null && chatOutput != null) {
             adapter.notifyDataSetChanged();
             chatOutput.smoothScrollToPosition(adapter.getItemCount() - 1);
         }
+    }
+
+    public void clearData() {
+        messages.clear();
+        updateChat();
     }
 }
