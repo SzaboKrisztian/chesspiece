@@ -1,7 +1,6 @@
-package com.krisztianszabo.chesspiece.online.games;
+package com.krisztianszabo.chesspiece.online.lobby;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,7 +43,7 @@ public class GamesListFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_games, container, false);
 
-        adapter = new GamesListAdapter(myGames, parent.getUsername());
+        adapter = new GamesListAdapter(myGames, parent);
         RecyclerView gamesView = view.findViewById(R.id.games_rec_list);
         gamesView.setLayoutManager(new LinearLayoutManager(parent));
         gamesView.setAdapter(adapter);

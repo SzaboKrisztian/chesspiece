@@ -15,7 +15,9 @@ import androidx.preference.PreferenceManager;
 
 import com.krisztianszabo.chesspiece.MainActivity;
 import com.krisztianszabo.chesspiece.R;
-import com.krisztianszabo.chesspiece.online.games.GamesListFragment;
+import com.krisztianszabo.chesspiece.model.Game;
+import com.krisztianszabo.chesspiece.online.games.GameViewFragment;
+import com.krisztianszabo.chesspiece.online.lobby.GamesListFragment;
 import com.krisztianszabo.chesspiece.online.lobby.ChatFragment;
 import com.krisztianszabo.chesspiece.online.lobby.UserListFragment;
 
@@ -34,14 +36,16 @@ import io.socket.client.Socket;
 public class OnlineActivity extends AppCompatActivity {
 
     private final String LOGIN_FRAGMENT = "Login fragment";
-    private final String CHAT_FRAGMENT = "Chat fragment";
-    private final String USERS_FRAGMENT = "Users fragment";
-    private final String GAMES_FRAGMENT = "Games fragment";
+    private final String LOBBY_CHAT_FRAGMENT = "Lobby chat fragment";
+    private final String USER_LIST_FRAGMENT = "User list fragment";
+    private final String GAME_LIST_FRAGMENT = "Game list fragment";
+    private final String GAME_VIEW_FRAGMENT = "Game view fragment";
     private String host;
     private LoginFragment loginFragment = new LoginFragment();
     private ChatFragment chatFragment = new ChatFragment();
     private UserListFragment userListFragment = new UserListFragment();
     private GamesListFragment gamesListFragment = new GamesListFragment();
+    private GameViewFragment gameViewFragment = new GameViewFragment();
     private Socket socket;
     private String username;
 
@@ -61,6 +65,7 @@ public class OnlineActivity extends AppCompatActivity {
         loginFragment.setParent(this);
         userListFragment.setParent(this);
         gamesListFragment.setParent(this);
+        gameViewFragment.setParent(this);
 
         showLogin();
     }
@@ -82,7 +87,8 @@ public class OnlineActivity extends AppCompatActivity {
                     .on("system message", args -> addMessageAndNotify((JSONObject)args[0]))
                     .on("userlist", args -> updateUserList((JSONObject)args[0]))
                     .on("challenge", args -> parseChallenge((JSONObject)args[0]))
-                    .on("mygames", args -> parseMyGames((JSONObject)args[0]));
+                    .on("mygames", args -> parseMyGames((JSONObject)args[0]))
+                    .on("game", args -> showGameView((JSONObject)args[0]));
             socket.connect();
             username = SessionManager.getInstance().getUsername(this);
             socket.emit("mygames");
@@ -132,22 +138,48 @@ public class OnlineActivity extends AppCompatActivity {
     public void showChat(View view) {
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.theFrame, chatFragment, CHAT_FRAGMENT)
+                .replace(R.id.theFrame, chatFragment, LOBBY_CHAT_FRAGMENT)
                 .commit();
     }
 
     public void showUserList(View view) {
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.theFrame, userListFragment, USERS_FRAGMENT)
+                .replace(R.id.theFrame, userListFragment, USER_LIST_FRAGMENT)
                 .commit();
     }
 
     public void showMyGames(View view) {
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.theFrame, gamesListFragment, GAMES_FRAGMENT)
+                .replace(R.id.theFrame, gamesListFragment, GAME_LIST_FRAGMENT)
                 .commit();
+    }
+
+    private void showGameView(JSONObject data) {
+        try {
+            Game game = new Game();
+            game.initFromJSON(data.getJSONObject("data"));
+            gameViewFragment.setGame(game);
+            Log.d("GAME", "Ready to show fragment");
+//            getSupportFragmentManager()
+//                    .beginTransaction()
+//                    .replace(R.id.theFrame, gameViewFragment, GAME_VIEW_FRAGMENT)
+//                    .commit();
+        } catch (JSONException e) {
+            Toast.makeText(this, "Error parsing game data.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void requestGame(int gameId) {
+        try {
+            JSONObject msg = new JSONObject();
+            msg.put("gameId", gameId);
+            msg.put("action", "get");
+            socket.emit("game", msg);
+        } catch (JSONException e) {
+            Toast.makeText(this, "Error sending game request", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private boolean isFragmentVisible(String tag) {
@@ -201,12 +233,14 @@ public class OnlineActivity extends AppCompatActivity {
             for (int i = 0; i < games.length(); i++) {
                 result.add(games.getJSONObject(i));
             }
-            runOnUiThread(() ->gamesListFragment.setGames(result));
+            runOnUiThread(() -> gamesListFragment.setGames(result));
         } catch (JSONException e) {
             Toast.makeText(this, "Error parsing JSON game data.", Toast.LENGTH_LONG)
                     .show();
         }
     }
+
+
 
     private void showChallengePopup(JSONObject data) {
         try {

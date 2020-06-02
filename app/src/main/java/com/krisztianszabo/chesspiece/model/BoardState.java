@@ -249,7 +249,7 @@ public class BoardState implements Serializable {
         generateLegalMoves();
     }
 
-    public void loadState(JSONObject state) throws JSONException {
+    public void initFromJSON(JSONObject state) throws JSONException {
         this.squares = new Piece[128];
         this.pieces = new ArrayList<>();
         JSONArray piecesData = state.getJSONArray("pieces");
@@ -265,6 +265,7 @@ public class BoardState implements Serializable {
             for (int j = 0; j < moves.length(); j++) {
                 legal.add(moves.getInt(j));
             }
+            this.legalMoves.put(newPiece, legal);
         }
         this.currentPlayer = state.getInt("currentPlayer") == 0 ? Player.WHITE : Player.BLACK;
         this.fiftyMoves = state.getInt("fiftyMoves");
@@ -275,7 +276,6 @@ public class BoardState implements Serializable {
         JSONArray queenside = state.getJSONArray("queensideCastle");
         whiteCastleQueenside = queenside.getBoolean(0);
         blackCastleQueenside = queenside.getBoolean(1);
-        this.generateLegalMoves();
     }
 
     public Piece[] getSquares() {

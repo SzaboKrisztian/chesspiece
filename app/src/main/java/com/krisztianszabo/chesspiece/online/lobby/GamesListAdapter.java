@@ -1,4 +1,4 @@
-package com.krisztianszabo.chesspiece.online.games;
+package com.krisztianszabo.chesspiece.online.lobby;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.krisztianszabo.chesspiece.R;
+import com.krisztianszabo.chesspiece.online.OnlineActivity;
 
 import org.json.JSONObject;
 
@@ -15,11 +16,11 @@ import java.util.List;
 public class GamesListAdapter extends RecyclerView.Adapter<GamesListViewHolder> {
 
     private List<JSONObject> myGames;
-    private String myName;
+    private OnlineActivity parent;
 
-    public GamesListAdapter(List<JSONObject> list, String name) {
+    GamesListAdapter(List<JSONObject> list, OnlineActivity activity) {
         myGames = list;
-        myName = name;
+        parent = activity;
     }
 
     @NonNull
@@ -31,7 +32,7 @@ public class GamesListAdapter extends RecyclerView.Adapter<GamesListViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull GamesListViewHolder holder, int position) {
-        holder.setViews(myGames.get(position), myName);
+        holder.setViews(myGames.get(position), parent);
     }
 
     @Override

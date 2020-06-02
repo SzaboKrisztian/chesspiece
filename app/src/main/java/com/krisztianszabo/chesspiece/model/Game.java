@@ -1,5 +1,9 @@
 package com.krisztianszabo.chesspiece.model;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.Serializable;
 import java.util.Stack;
 
@@ -18,7 +22,7 @@ public class Game implements Serializable {
     }
 
     private Stack<BoardState> undoneMoves = new Stack<>();
-    private Stack<BoardState> boardHistory;
+    private Stack<BoardState> boardHistory = new Stack<>();;
     private State state;
     private String white;
     private String black;
@@ -35,8 +39,7 @@ public class Game implements Serializable {
         return boardHistory.empty() ? null : boardHistory.peek();
     }
 
-    public void initOffline() {
-        this.boardHistory = new Stack<>();
+    void initOffline() {
         BoardState board = new BoardState();
         board.initStandardChess();
 //        board.initTestPosition();
@@ -47,6 +50,50 @@ public class Game implements Serializable {
         board.generateLegalMoves();
         this.boardHistory.push(board);
         this.state = checkState();
+    }
+
+    public void initFromJSON(JSONObject data) {
+        try {
+            JSONObject meta = data.getJSONObject("meta");
+            this.state = codeToState(meta.getInt("status"));
+            this.white = meta.getString("whiteUser");
+            this.black = meta.getString("blackUser");
+            JSONArray history = data.getJSONObject("obj").getJSONArray("history");
+            for (int i = 0; i < history.length(); i++) {
+                BoardState board = new BoardState();
+                board.initFromJSON(history.getJSONObject(i));
+                this.boardHistory.push(board);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private State codeToState(int code) {
+        switch (code) {
+            case -2:
+                return State.WHITE_MOVES;
+            case -1:
+                return State.BLACK_MOVES;
+            case 0:
+                return State.WHITE_WINS_CHECKMATE;
+            case 1:
+                return State.BLACK_WINS_CHECKMATE;
+            case 2:
+                return State.WHITE_WINS_RESIGNATION;
+            case 3:
+                return State.BLACK_WINS_RESIGNATION;
+            case 4:
+                return State.DRAW_MATERIAL;
+            case 5:
+                return State.DRAW_STALEMATE;
+            case 6:
+                return State.DRAW_FIFTY;
+            case 7:
+                return State.DRAW_AGREEMENT;
+            default:
+                return null;
+        }
     }
 
     public void makeMove(int piecePos, int move) {
