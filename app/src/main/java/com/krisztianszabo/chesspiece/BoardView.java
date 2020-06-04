@@ -24,7 +24,7 @@ import java.util.Map;
 public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
         SurfaceView.OnTouchListener {
     private Integer promotionMove = null;
-    private ChessActivity parentActivity;
+    private ChessMoveReceiver moveReceiver;
     private BoardState boardState;
     private boolean currentlyRotated = false;
     private boolean rotateBoard = false;
@@ -33,6 +33,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
     private boolean showCoordinates = false;
     private boolean showLegalMoves = true;
     private boolean showLastMove = false;
+    private boolean allowTouch;
     private Resources res = getContext().getResources();
     private Bitmap bg = BitmapFactory.decodeResource(res, R.drawable.board);
     private Bitmap bgCoord = BitmapFactory.decodeResource(res, R.drawable.board_coords);
@@ -83,8 +84,14 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
     }
 
     // Set the reference to the parent activity / fragment, needed to send out the player's move
-    public void setParentActivity(ChessActivity parentActivity) {
-        this.parentActivity = parentActivity;
+    public void setMoveReceiver(ChessMoveReceiver moveReceiver) {
+        this.moveReceiver = moveReceiver;
+    }
+
+    // Controls whether the view should respond to touch events. Used in online mode
+    // to only allow touch events when it's the player's turn. Always true in offline mode.
+    public void setAllowTouch(boolean allowTouch) {
+        this.allowTouch = allowTouch;
     }
 
     // Set the board state to be displayed
@@ -266,7 +273,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+        if (allowTouch && event.getAction() == MotionEvent.ACTION_DOWN) {
             int[] t = touchToCoord(event);
             int x = t[0];
             int y = t[1];
@@ -290,7 +297,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
                             promotionBits = 7 << 10;
                             break;
                     }
-                    parentActivity.makeMove(selectionIndex, promotionMove | promotionBits);
+                    moveReceiver.makeMove(selectionIndex, promotionMove | promotionBits);
                 }
                 promotionMove = null;
                 deselect();
@@ -313,7 +320,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
                     if (boardState.isPromotionMove(selectionIndex, move)) {
                         promotionMove = move & 0x77;
                     } else {
-                        parentActivity.makeMove(selectionIndex, move);
+                        moveReceiver.makeMove(selectionIndex, move);
                         updateCurrentlyRotated();
                     }
                 }

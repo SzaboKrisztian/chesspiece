@@ -1,7 +1,9 @@
-package com.krisztianszabo.chesspiece.model;
+package com.krisztianszabo.chesspiece.offline;
 
 import android.content.Context;
 import android.util.Log;
+
+import com.krisztianszabo.chesspiece.model.Game;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,13 +13,13 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-public class GameManager {
+public class OfflineGameManager {
     private Game theGame;
-    private static GameManager instance = new GameManager();
+    private static OfflineGameManager instance = new OfflineGameManager();
 
-    private GameManager() {}
+    private OfflineGameManager() {}
 
-    public static GameManager getInstance() {
+    static OfflineGameManager getInstance() {
         return instance;
     }
 
@@ -25,7 +27,7 @@ public class GameManager {
         return theGame;
     }
 
-    public void saveOfflineGame(Context context) {
+    void saveOfflineGame(Context context) {
         try {
             File outFile = new File(context.getCacheDir(), "game.dat");
             ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(outFile));
@@ -36,7 +38,7 @@ public class GameManager {
         }
     }
 
-    public boolean loadOfflineGame(Context context) {
+    boolean loadOfflineGame(Context context) {
         ObjectInput in;
         File inFile = new File(context.getCacheDir(), "game.dat");
         try {
@@ -51,31 +53,16 @@ public class GameManager {
         }
     }
 
-    public void deleteSavedData(Context context) {
+    void deleteSavedData(Context context) {
         File saveData = new File(context.getCacheDir(), "game.dat");
         if (saveData.exists()) {
+            //noinspection ResultOfMethodCallIgnored
             saveData.delete();
         }
     }
 
-    public void newOfflineGame() {
+    void newOfflineGame() {
         theGame = new Game();
         theGame.initOffline();
-    }
-
-    public void newOnlineGame(String opponent) {
-
-    }
-
-    public void sendInvite(String email) {
-
-    }
-
-    public void resign() {
-
-    }
-
-    public void offerDraw() {
-
     }
 }

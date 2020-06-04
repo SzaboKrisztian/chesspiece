@@ -39,7 +39,15 @@ public class Game implements Serializable {
         return boardHistory.empty() ? null : boardHistory.peek();
     }
 
-    void initOffline() {
+    public BoardState getBoard(int i) {
+        return boardHistory.get(i);
+    }
+
+    public int getHistorySize() {
+        return boardHistory.size();
+    }
+
+    public void initOffline() {
         BoardState board = new BoardState();
         board.initStandardChess();
 //        board.initTestPosition();
@@ -52,20 +60,16 @@ public class Game implements Serializable {
         this.state = checkState();
     }
 
-    public void initFromJSON(JSONObject data) {
-        try {
-            JSONObject meta = data.getJSONObject("meta");
-            this.state = codeToState(meta.getInt("status"));
-            this.white = meta.getString("whiteUser");
-            this.black = meta.getString("blackUser");
-            JSONArray history = data.getJSONObject("obj").getJSONArray("history");
-            for (int i = 0; i < history.length(); i++) {
-                BoardState board = new BoardState();
-                board.initFromJSON(history.getJSONObject(i));
-                this.boardHistory.push(board);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
+    public void initFromJSON(JSONObject data) throws JSONException {
+        JSONObject meta = data.getJSONObject("meta");
+        this.state = codeToState(meta.getInt("status"));
+        this.white = meta.getString("whiteUser");
+        this.black = meta.getString("blackUser");
+        JSONArray history = data.getJSONObject("obj").getJSONArray("history");
+        for (int i = 0; i < history.length(); i++) {
+            BoardState board = new BoardState();
+            board.initFromJSON(history.getJSONObject(i));
+            this.boardHistory.push(board);
         }
     }
 

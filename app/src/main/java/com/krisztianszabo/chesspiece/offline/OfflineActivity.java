@@ -10,14 +10,13 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.krisztianszabo.chesspiece.BoardView;
-import com.krisztianszabo.chesspiece.ChessActivity;
+import com.krisztianszabo.chesspiece.ChessMoveReceiver;
 import com.krisztianszabo.chesspiece.R;
 import com.krisztianszabo.chesspiece.model.Game;
-import com.krisztianszabo.chesspiece.model.GameManager;
 import com.krisztianszabo.chesspiece.DisplaySettings;
 import com.krisztianszabo.chesspiece.SettingsManager;
 
-public class OfflineActivity extends AppCompatActivity implements ChessActivity {
+public class OfflineActivity extends AppCompatActivity implements ChessMoveReceiver {
 
     private BoardView boardView;
     private TextView gameMsg;
@@ -28,10 +27,11 @@ public class OfflineActivity extends AppCompatActivity implements ChessActivity 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_offline);
         boardView = findViewById(R.id.board);
-        boardView.setParentActivity(this);
+        boardView.setMoveReceiver(this);
+        boardView.setAllowTouch(true);
         gameMsg = findViewById(R.id.gameMsg);
 
-        GameManager mgr = GameManager.getInstance();
+        OfflineGameManager mgr = OfflineGameManager.getInstance();
         boolean success = mgr.loadOfflineGame(this);
 
         if (success) {
@@ -48,7 +48,7 @@ public class OfflineActivity extends AppCompatActivity implements ChessActivity 
     @Override
     public void makeMove(int piecePosition, int move) {
         game.makeMove(piecePosition, move);
-        GameManager.getInstance().saveOfflineGame(this);
+        OfflineGameManager.getInstance().saveOfflineGame(this);
         updateViews();
     }
 
@@ -196,9 +196,9 @@ public class OfflineActivity extends AppCompatActivity implements ChessActivity 
     }
 
     private void startNewGame() {
-        GameManager.getInstance().deleteSavedData(this);
-        GameManager.getInstance().newOfflineGame();
-        game = GameManager.getInstance().getGame();
+        OfflineGameManager.getInstance().deleteSavedData(this);
+        OfflineGameManager.getInstance().newOfflineGame();
+        game = OfflineGameManager.getInstance().getGame();
         updateViews();
     }
 

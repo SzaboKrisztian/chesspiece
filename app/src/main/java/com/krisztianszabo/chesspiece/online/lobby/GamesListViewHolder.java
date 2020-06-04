@@ -1,6 +1,7 @@
 package com.krisztianszabo.chesspiece.online.lobby;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.view.View;
 import android.widget.TextView;
 
@@ -9,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.krisztianszabo.chesspiece.R;
 import com.krisztianszabo.chesspiece.online.OnlineActivity;
+import com.krisztianszabo.chesspiece.online.games.OnlineGameManager;
 import com.krisztianszabo.chesspiece.online.games.Utils;
 
 import org.json.JSONException;
@@ -43,10 +45,16 @@ public class GamesListViewHolder extends RecyclerView.ViewHolder {
             String statusText = Utils.getStatusText(statusCode, white, black, myName);
             if (statusCode == -2 || statusCode == -1) {
                 statusText = Utils.addNumMoves(statusText, numMoves);
+            } else {
+                players.setTextColor(Color.GRAY);
             }
             status.setText(statusText);
 
-            layout.setOnClickListener(v -> parent.requestGame(gameId));
+            if ((statusCode == -2 && white.equals(myName)) ||
+                    (statusCode == -1 && black.equals(myName))) {
+                layout.setBackgroundColor(Color.argb(63, 128, 255, 128));
+            }
+            layout.setOnClickListener(v -> OnlineGameManager.getInstance().getGame(gameId, parent));
         } catch (JSONException e) {
             players.setText("ERROR");
             status.setText("Error parsing JSON data");

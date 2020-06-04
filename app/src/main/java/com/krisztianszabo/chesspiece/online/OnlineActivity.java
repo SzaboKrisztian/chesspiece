@@ -17,6 +17,7 @@ import com.krisztianszabo.chesspiece.MainActivity;
 import com.krisztianszabo.chesspiece.R;
 import com.krisztianszabo.chesspiece.model.Game;
 import com.krisztianszabo.chesspiece.online.games.GameViewFragment;
+import com.krisztianszabo.chesspiece.online.games.OnlineGameManager;
 import com.krisztianszabo.chesspiece.online.lobby.GamesListFragment;
 import com.krisztianszabo.chesspiece.online.lobby.ChatFragment;
 import com.krisztianszabo.chesspiece.online.lobby.UserListFragment;
@@ -39,15 +40,16 @@ public class OnlineActivity extends AppCompatActivity {
     private final String LOBBY_CHAT_FRAGMENT = "Lobby chat fragment";
     private final String USER_LIST_FRAGMENT = "User list fragment";
     private final String GAME_LIST_FRAGMENT = "Game list fragment";
-    private final String GAME_VIEW_FRAGMENT = "Game view fragment";
+    private final String GAME_FRAGMENT = "Game fragment";
     private String host;
     private LoginFragment loginFragment = new LoginFragment();
     private ChatFragment chatFragment = new ChatFragment();
     private UserListFragment userListFragment = new UserListFragment();
     private GamesListFragment gamesListFragment = new GamesListFragment();
-    private GameViewFragment gameViewFragment = new GameViewFragment();
+    private GameViewFragment gameFragment = new GameViewFragment();
     private Socket socket;
     private String username;
+    private Integer gameToDisplay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +67,7 @@ public class OnlineActivity extends AppCompatActivity {
         loginFragment.setParent(this);
         userListFragment.setParent(this);
         gamesListFragment.setParent(this);
-        gameViewFragment.setParent(this);
+        gameFragment.setParent(this);
 
         showLogin();
     }
@@ -78,6 +80,10 @@ public class OnlineActivity extends AppCompatActivity {
         return host;
     }
 
+    public void setGameToDisplay(Integer gameToDisplay) {
+        this.gameToDisplay = gameToDisplay;
+    }
+
     public void isAuthenticated() {
         try {
             socket = IO.socket(host);
@@ -88,7 +94,7 @@ public class OnlineActivity extends AppCompatActivity {
                     .on("userlist", args -> updateUserList((JSONObject)args[0]))
                     .on("challenge", args -> parseChallenge((JSONObject)args[0]))
                     .on("mygames", args -> parseMyGames((JSONObject)args[0]))
-                    .on("game", args -> showGameView((JSONObject)args[0]));
+                    .on("game", args -> parseGame((JSONObject)args[0]));
             socket.connect();
             username = SessionManager.getInstance().getUsername(this);
             socket.emit("mygames");
@@ -156,19 +162,12 @@ public class OnlineActivity extends AppCompatActivity {
                 .commit();
     }
 
-    private void showGameView(JSONObject data) {
-        try {
-            Game game = new Game();
-            game.initFromJSON(data.getJSONObject("data"));
-            gameViewFragment.setGame(game);
-            Log.d("GAME", "Ready to show fragment");
-//            getSupportFragmentManager()
-//                    .beginTransaction()
-//                    .replace(R.id.theFrame, gameViewFragment, GAME_VIEW_FRAGMENT)
-//                    .commit();
-        } catch (JSONException e) {
-            Toast.makeText(this, "Error parsing game data.", Toast.LENGTH_SHORT).show();
-        }
+    public void showGameView(int gameId, Game game) {
+        gameFragment.setGame(gameId, game);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.theFrame, gameFragment, GAME_FRAGMENT)
+                .commit();
     }
 
     public void requestGame(int gameId) {
@@ -240,7 +239,34 @@ public class OnlineActivity extends AppCompatActivity {
         }
     }
 
+    private void parseGame(JSONObject data) {
+        Log.d("GAME UPDATE", "parseGame: GOT GAME DATA");
+        try {
+            switch (data.getString("action")) {
+                case "send":
+                    JSONObject gameData = data.getJSONObject("data");
+                    OnlineGameManager.getInstance().updateGame(gameData, this);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void gameUpdated(int gameId) {
+        if (gameToDisplay != null && gameToDisplay == gameId) {
+            gameToDisplay = null;
+            runOnUiThread(() -> OnlineGameManager.getInstance().getGame(gameId, this));
+        } else if (isFragmentVisible(GAME_FRAGMENT) && gameFragment.getGameId() == gameId) {
+            gameFragment.updateGameView(gameId);
+        } else {
+            runOnUiThread(() -> Toast.makeText(this, "GAME UPDATED ID: " + gameId,
+                    Toast.LENGTH_SHORT).show());
+        }
+    }
+
+    public void emitGameEvent(JSONObject data) {
+        socket.emit("game", data);
+    }
 
     private void showChallengePopup(JSONObject data) {
         try {
