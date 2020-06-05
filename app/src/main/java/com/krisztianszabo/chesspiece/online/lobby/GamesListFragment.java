@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.krisztianszabo.chesspiece.R;
 import com.krisztianszabo.chesspiece.online.OnlineActivity;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -53,6 +54,5 @@ public class GamesListFragment extends Fragment {
 
     public void clearData() {
         myGames.clear();
-        adapter.notifyDataSetChanged();
     }
 }

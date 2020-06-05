@@ -115,6 +115,35 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
         invalidate();
     }
 
+    public void setRotateBoard(boolean rotateBoard) {
+        this.rotateBoard = rotateBoard;
+        updateCurrentlyRotated();
+        invalidate();
+    }
+
+    public void setRotateUpperPieces(boolean rotateUpperPieces) {
+        this.rotateUpperPieces = rotateUpperPieces;
+        invalidate();
+    }
+
+    public void setShowCoordinates(boolean showCoordinates) {
+        if (showCoordinates != this.showCoordinates) {
+            this.showCoordinates = showCoordinates;
+            generateSquares(totalWidth, totalHeight);
+        }
+        invalidate();
+    }
+
+    public void setShowLegalMoves(boolean showLegalMoves) {
+        this.showLegalMoves = showLegalMoves;
+        invalidate();
+    }
+
+    public void setShowLastMove(boolean showLastMove) {
+        this.showLastMove = showLastMove;
+        invalidate();
+    }
+
     // Figure out if the board should be rotated, according to the chosen settings
     private void updateCurrentlyRotated() {
         currentlyRotated = rotateBoard != (rotateBoardOnEachMove &&
@@ -243,7 +272,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
                             promotionSquare, paint);
                 }
             }
-            Integer[] lastMove = boardState.getLastmove();
+            Integer[] lastMove = boardState.getLastMove();
             if (showLastMove && lastMove != null) {
                 paint.setStyle(Paint.Style.STROKE);
                 paint.setStrokeWidth(squareWidth / 5);
@@ -261,11 +290,13 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
 //                    canvas.drawRect(squares[j][i], paint);
 //                }
 //            }
+//            paint.reset();
+//            paint.setColor(Color.argb(63, 255, 0, 0));
 //            for (int i = 8; i < 128; i++) {
 //                if ((i & 8) == 0) i += 8;
 //                if (boardState.getSquares()[i] != null) {
 //                    int[] coords = indexToCoords(i ^ 8);
-//                    canvas.drawRect(squares[coords[0]][coords[1]], debugPaint);
+//                    canvas.drawRect(squares[coords[0]][coords[1]], paint);
 //                }
 //            }
         }

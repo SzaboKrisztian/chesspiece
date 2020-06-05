@@ -43,6 +43,7 @@ public class OnlineGameManager {
             activity.gameUpdated(id);
         } catch (JSONException e) {
             Log.e("GAME", "Error parsing JSON game data.");
+            e.printStackTrace();
         }
     }
 }

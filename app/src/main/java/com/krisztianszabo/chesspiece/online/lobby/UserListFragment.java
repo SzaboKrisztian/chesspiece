@@ -90,6 +90,5 @@ public class UserListFragment extends Fragment {
 
     public void clearData() {
         users.clear();
-        adapter.notifyDataSetChanged();
     }
 }

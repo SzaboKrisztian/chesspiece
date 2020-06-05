@@ -1,4 +1,4 @@
-package com.krisztianszabo.chesspiece.online.lobby;
+package com.krisztianszabo.chesspiece.online.games;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -12,23 +12,23 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-public class ChatViewAdapter extends RecyclerView.Adapter<ChatViewHolder> {
+public class GameChatAdapter extends RecyclerView.Adapter<GameChatViewHolder> {
 
     private List<JSONObject> messages;
 
-    public void setMessages(List<JSONObject> messages) {
+    public GameChatAdapter(List<JSONObject> messages) {
         this.messages = messages;
     }
 
     @NonNull
     @Override
-    public ChatViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ChatViewHolder(LayoutInflater.from(parent.getContext())
+    public GameChatViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        return new GameChatViewHolder(LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.chat_message, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull GameChatViewHolder holder, int position) {
         holder.setMessage(messages.get(position));
     }
 

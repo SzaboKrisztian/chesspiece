@@ -24,7 +24,7 @@ public class BoardState implements Serializable {
     private Integer enPassant;
     private int fiftyMoves;
     private Piece attackMarker = new Piece();
-    private Integer[] lastmove;
+    private Integer[] lastMove;
 
     private static final int N = 16, NE = 17, E = 1, SE = -15, S = -16, SW = -17, W = -1, NW = 15;
     private static final int[] bishopDirs = {NE, SE, SW, NW};
@@ -57,6 +57,8 @@ public class BoardState implements Serializable {
         this.squares = new Piece[128];
         this.pieces = other.clonePieces();
         this.fiftyMoves = other.fiftyMoves;
+        this.lastMove = other.lastMove == null ? null :
+                new Integer[]{other.lastMove[0], other.lastMove[1]};
         for (Piece piece : this.pieces) {
             this.squares[piece.getPosition()] = piece;
         }
@@ -270,6 +272,10 @@ public class BoardState implements Serializable {
         this.currentPlayer = state.getInt("currentPlayer") == 0 ? Player.WHITE : Player.BLACK;
         this.fiftyMoves = state.getInt("fiftyMoves");
         this.enPassant = state.isNull("enPassant") ? null : state.getInt("enPassant");
+        this.lastMove = state.isNull("lastMove") ? null : new Integer[]{
+                state.getJSONArray("lastMove").getInt(0),
+                state.getJSONArray("lastMove").getInt(1)
+        };
         JSONArray kingside = state.getJSONArray("kingsideCastle");
         whiteCastleKingside = kingside.getBoolean(0);
         blackCastleKingside = kingside.getBoolean(1);
@@ -294,8 +300,8 @@ public class BoardState implements Serializable {
         return fiftyMoves;
     }
 
-    public Integer[] getLastmove() {
-        return lastmove;
+    public Integer[] getLastMove() {
+        return lastMove;
     }
 
     private void swapCurrentPlayer() {
@@ -345,8 +351,10 @@ public class BoardState implements Serializable {
                 if (target != null) {
                     result.pieces.remove(target);
                     resetFiftyMoves = true;
-                } else if (piece.getType() == Piece.Type.PAWN) {
-                    // Check if we're promoting a pawn
+                }
+                // Check if we're moving a pawn
+                if (piece.getType() == Piece.Type.PAWN) {
+                    // Check if we're promoting it
                     int promotion = (move & promotionBits) >> 10;
                     if (promotion > 0) {
                         switch (promotion) {
@@ -410,7 +418,7 @@ public class BoardState implements Serializable {
             // And finally, in all cases, we actually make the move
             result.squares[piecePos] = null;
             result.squares[destination] = piece;
-            result.lastmove = new Integer[]{piecePos, destination};
+            result.lastMove = new Integer[]{piecePos, destination};
             piece.setPosition(destination);
             if (clearEnPassant) {
                 result.enPassant = null;
@@ -578,7 +586,7 @@ public class BoardState implements Serializable {
                     // An edge case where a pawn that could otherwise do an en passant capture is
                     // prohibited of doing so, because that would leave its king in check
                     Integer direction = getDirection(piece.getPosition(), king.getPosition());
-                    if (direction != null) {
+                    if (direction != null && (direction == E || direction == W)) {
                         int step = piece.getPosition();
                         do {
                             step += direction;
@@ -689,7 +697,14 @@ public class BoardState implements Serializable {
             if (isWithinBounds(target)) {
                 Piece square = squares[target];
                 if (square != null && square.getOwner() != pawn.getOwner()) {
-                    result.add(target);
+                    if (isLastRank(target)) {
+                        // Promote while capturing
+                        for (int promotionBits : promotionOptions) {
+                            result.add(target + promotionBits);
+                        }
+                    } else {
+                        result.add(target);
+                    }
                 }
                 if (pawn.getOwner() != currentPlayer) {
                     squares[target | 8] = attackMarker;

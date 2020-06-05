@@ -2,6 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/game_menu_resign"
+        android:onClick="resign"
+        android:title="Resign" />
+    <item
+        android:id="@+id/game_menu_draw"
+        android:onClick="draw"
+        android:title="Offer draw" />
+    <item
         android:title="Settings">
         <menu>
             <item

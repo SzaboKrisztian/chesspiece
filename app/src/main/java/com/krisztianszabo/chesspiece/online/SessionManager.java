@@ -2,7 +2,6 @@ package com.krisztianszabo.chesspiece.online;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
@@ -71,7 +70,7 @@ public class SessionManager {
     public void isAuthenticated(OnlineActivity activity, AuthTest callback) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
         String sessionId = prefs.getString(COOKIE_KEY, null);
-        String host =activity.getHost();
+        String host = activity.getHost();
 
         if (sessionId != null) {
             StringRequest request = new StringRequest(Request.Method.GET, host + "auth/test",

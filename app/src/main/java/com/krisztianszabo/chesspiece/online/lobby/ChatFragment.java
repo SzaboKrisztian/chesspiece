@@ -82,6 +82,5 @@ public class ChatFragment extends Fragment {
 
     public void clearData() {
         messages.clear();
-        updateChat();
     }
 }

@@ -26,6 +26,7 @@ public class Game implements Serializable {
     private State state;
     private String white;
     private String black;
+    private Player drawOffered;
 
     public State getState() {
         return state;
@@ -47,6 +48,14 @@ public class Game implements Serializable {
         return boardHistory.size();
     }
 
+    public Player getDrawOffered() {
+        return drawOffered;
+    }
+
+    public void setDrawOffered(Player drawOffered) {
+        this.drawOffered = drawOffered;
+    }
+
     public void initOffline() {
         BoardState board = new BoardState();
         board.initStandardChess();
@@ -65,6 +74,18 @@ public class Game implements Serializable {
         this.state = codeToState(meta.getInt("status"));
         this.white = meta.getString("whiteUser");
         this.black = meta.getString("blackUser");
+        int draw = meta.getInt("drawOffer");
+        switch (draw) {
+            case 0:
+                this.drawOffered = Player.WHITE;
+                break;
+            case 1:
+                this.drawOffered = Player.BLACK;
+                break;
+            default:
+                this.drawOffered = null;
+                break;
+        }
         JSONArray history = data.getJSONObject("obj").getJSONArray("history");
         for (int i = 0; i < history.length(); i++) {
             BoardState board = new BoardState();
