@@ -40,15 +40,14 @@ public class GameChatViewHolder extends RecyclerView.ViewHolder {
 
     public void setMessage(JSONObject data) {
         try {
-            Log.d("GAME CHAT", "timestamp: " + data.getString("createdAt"));
             String ts = "";
             try {
                 Date dt = TS_FORMAT.parse(data.getString("createdAt"));
-                ts = OUTPUT_FORMAT.format(dt);
+                ts = " said at " + OUTPUT_FORMAT.format(dt);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            String metaText = data.getString("author") + " said at " + ts;
+            String metaText = data.getString("author") + ts;
             String contentText = URLDecoder.decode(data.getString("message"), "utf-8");
             meta.setText(metaText);
             content.setText(contentText);

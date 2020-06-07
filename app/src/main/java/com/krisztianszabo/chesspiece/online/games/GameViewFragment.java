@@ -84,7 +84,7 @@ public class GameViewFragment extends Fragment implements ChessMoveReceiver {
             OnlineGameManager.getInstance().getGame(gameId, parent);
             updateViews();
         } else {
-            Toast.makeText(parent, "GAME UPDATED ID: " + gameId, Toast.LENGTH_SHORT).show();
+            Toast.makeText(parent, "A game has been updated." + gameId, Toast.LENGTH_SHORT).show();
         }
     }
 

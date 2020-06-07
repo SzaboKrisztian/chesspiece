@@ -249,12 +249,8 @@ public class OnlineActivity extends AppCompatActivity {
                     break;
                 case "accepted":
                     runOnUiThread(() -> {
-                            try {
-                                Toast.makeText(this, "New game started with id: "
-                                        + data.getString("gameId"), Toast.LENGTH_LONG).show();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
+                            Toast.makeText(this, "New game started",
+                                    Toast.LENGTH_LONG).show();
                         }
                     );
                     break;
@@ -365,7 +361,7 @@ public class OnlineActivity extends AppCompatActivity {
         } else if (gameFragment != null && gameFragment.getGameId() == gameId) {
             runOnUiThread(() -> gameFragment.updateGame(gameId));
         } else {
-            runOnUiThread(() -> Toast.makeText(this, "GAME UPDATED ID: " + gameId,
+            runOnUiThread(() -> Toast.makeText(this, "A game has been updated.",
                     Toast.LENGTH_SHORT).show());
         }
     }
