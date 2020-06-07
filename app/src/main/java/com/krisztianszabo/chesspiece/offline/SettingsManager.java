@@ -1,4 +1,4 @@
-package com.krisztianszabo.chesspiece;
+package com.krisztianszabo.chesspiece.offline;
 
 import android.content.Context;
 import android.util.Log;

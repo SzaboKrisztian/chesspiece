@@ -16,6 +16,7 @@ import android.view.View;
 import com.krisztianszabo.chesspiece.model.BoardState;
 import com.krisztianszabo.chesspiece.model.Piece;
 import com.krisztianszabo.chesspiece.model.Player;
+import com.krisztianszabo.chesspiece.offline.DisplaySettings;
 
 import java.util.HashMap;
 import java.util.List;
@@ -283,22 +284,6 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback,
                 coord = indexToCoords(lastMove[1]);
                 canvas.drawRect(squares[coord[0]][coord[1]], paint);
             }
-//            paint.reset();
-//            for (int i = 0; i < 8; i++) {
-//                for (int j = 0; j < 8; j++) {
-//                    paint.setARGB(195, (i + j) % 2 == 0 ? 255 : 0, (i + j) % 2 != 0 ? 255 : 0, 0);
-//                    canvas.drawRect(squares[j][i], paint);
-//                }
-//            }
-//            paint.reset();
-//            paint.setColor(Color.argb(63, 255, 0, 0));
-//            for (int i = 8; i < 128; i++) {
-//                if ((i & 8) == 0) i += 8;
-//                if (boardState.getSquares()[i] != null) {
-//                    int[] coords = indexToCoords(i ^ 8);
-//                    canvas.drawRect(squares[coords[0]][coords[1]], paint);
-//                }
-//            }
         }
     }
 

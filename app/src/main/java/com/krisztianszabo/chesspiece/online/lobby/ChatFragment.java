@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.krisztianszabo.chesspiece.R;
-import com.krisztianszabo.chesspiece.online.OnlineActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;

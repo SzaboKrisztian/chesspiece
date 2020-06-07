@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.krisztianszabo.chesspiece.R;
 import com.krisztianszabo.chesspiece.online.OnlineActivity;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -46,7 +45,9 @@ public class GamesListFragment extends Fragment {
 
         adapter = new GamesListAdapter(myGames, parent);
         RecyclerView gamesView = view.findViewById(R.id.games_rec_list);
-        gamesView.setLayoutManager(new LinearLayoutManager(parent));
+        LinearLayoutManager llm = new LinearLayoutManager(parent);
+        llm.setReverseLayout(true);
+        gamesView.setLayoutManager(llm);
         gamesView.setAdapter(adapter);
 
         return view;

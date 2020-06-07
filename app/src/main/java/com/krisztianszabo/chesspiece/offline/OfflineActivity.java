@@ -13,8 +13,6 @@ import com.krisztianszabo.chesspiece.BoardView;
 import com.krisztianszabo.chesspiece.ChessMoveReceiver;
 import com.krisztianszabo.chesspiece.R;
 import com.krisztianszabo.chesspiece.model.Game;
-import com.krisztianszabo.chesspiece.DisplaySettings;
-import com.krisztianszabo.chesspiece.SettingsManager;
 
 public class OfflineActivity extends AppCompatActivity implements ChessMoveReceiver {
 

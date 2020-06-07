@@ -32,20 +32,8 @@ public class Game implements Serializable {
         return state;
     }
 
-    public void setState(State state) {
-        this.state = state;
-    }
-
     public BoardState getBoard() {
         return boardHistory.empty() ? null : boardHistory.peek();
-    }
-
-    public BoardState getBoard(int i) {
-        return boardHistory.get(i);
-    }
-
-    public int getHistorySize() {
-        return boardHistory.size();
     }
 
     public Player getDrawOffered() {
@@ -180,15 +168,7 @@ public class Game implements Serializable {
         return white;
     }
 
-    public void setWhite(String white) {
-        this.white = white;
-    }
-
     public String getBlack() {
         return black;
-    }
-
-    public void setBlack(String black) {
-        this.black = black;
     }
 }
